@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import ThreeScene from '@/components/3d/ThreeScene';
-import SimpleRayMarch from '@/components/3d/SimpleRayMarch';
+import RayMarchShader from '@/components/3d/RayMarchShader';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -70,12 +70,12 @@ const Hero = () => {
           orbitControls={false}
           ambientLightIntensity={0.5}
           cameraPosition={[0, 0, 5]}
-          enablePostProcessing={true}
+          enablePostProcessing={false} // Disable ThreeScene post-processing as RayMarchShader has its own
           effectsPreset="medium"
         >
-          <SimpleRayMarch 
+          <RayMarchShader 
             colorPalette={['#ff3366', '#101010', '#00ffd1']}
-            intensity={1.2}
+            preset="neon"
           />
         </ThreeScene>
       </div>
