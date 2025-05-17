@@ -13,6 +13,7 @@ const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const titleSplitRef = useRef<SplitText | null>(null);
   
   // Animate hero elements on mount
   useEffect(() => {
@@ -21,12 +22,11 @@ const Hero = () => {
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
     
     // Split text for animation
-    let titleSplit;
     if (titleRef.current) {
-      titleSplit = new SplitText(titleRef.current, { type: 'words,chars' });
+      titleSplitRef.current = new SplitText(titleRef.current, { type: 'words,chars' });
       
       // Animate title
-      tl.from(titleSplit.chars, {
+      tl.from(titleSplitRef.current.chars, {
         opacity: 0,
         y: 100,
         rotationX: -90,
@@ -53,8 +53,8 @@ const Hero = () => {
     
     // Clean up split text instance
     return () => {
-      if (titleSplit) {
-        titleSplit.revert();
+      if (titleSplitRef.current) {
+        titleSplitRef.current.revert();
       }
     };
   }, []);
@@ -64,7 +64,7 @@ const Hero = () => {
       className="relative h-screen w-full flex items-center overflow-hidden"
       ref={containerRef}
     >
-      {/* Background 3D scene with raymarching effect */}
+      {/* Background 3D scene with abstract visualization */}
       <div className="absolute inset-0 -z-10">
         <ThreeScene 
           orbitControls={false}
