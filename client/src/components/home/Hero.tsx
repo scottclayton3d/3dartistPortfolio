@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import ThreeScene from '@/components/3d/ThreeScene';
-import AbstractBackground from '@/components/3d/AbstractBackground';
+import RayMarchVisualizer from '@/components/3d/RayMarchVisualizer';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -64,7 +64,7 @@ const Hero = () => {
       className="relative h-screen w-full flex items-center overflow-hidden"
       ref={containerRef}
     >
-      {/* Background 3D scene with abstract visualization */}
+      {/* Background 3D scene with ray marching visualization */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-background via-background/95 to-background/90">
         <ThreeScene 
           orbitControls={false}
@@ -73,8 +73,9 @@ const Hero = () => {
           enablePostProcessing={true}
           effectsPreset="medium"
         >
-          <AbstractBackground 
+          <RayMarchVisualizer 
             colorPalette={['#ff3366', '#101010', '#00ffd1']}
+            intensity={1.2}
           />
         </ThreeScene>
       </div>
