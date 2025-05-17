@@ -127,7 +127,7 @@ const AbstractBackground = ({
       // Combine noise layers with different weightings
       float combinedNoise = (n1 * 0.4 + n2 * 0.3 + n3 * 0.2 + n4 * 0.1) * 0.7 + 0.3;
       
-      // Create gradient background with more color variation
+      // Create gradient with more color variation but without solid background
       float hueShift = time * 0.05; // Subtle hue shift over time
       vec3 color1Shifted = hsl2rgb(vec3(fract(hueShift + 0.0), 0.7, 0.5)); // Animated hue
       vec3 color3Shifted = hsl2rgb(vec3(fract(hueShift + 0.3), 0.7, 0.5)); // Animated hue with offset
@@ -136,9 +136,16 @@ const AbstractBackground = ({
       vec3 c1 = mix(color1, color1Shifted, 0.3);
       vec3 c3 = mix(color3, color3Shifted, 0.3);
       
-      // Create dynamic gradient background
-      vec3 gradientColor = mix(c1, color2, uv.y + sin(uv.x * 4.0 + time) * 0.1);
-      gradientColor = mix(gradientColor, c3, length(uv - 0.5) * 1.2);
+      // Create dynamic gradient without solid background
+      // Use noise as a base for patchy, non-uniform coloring
+      float noisePattern = snoise(vec2(uv.x * 5.0 + time * 0.2, uv.y * 5.0));
+      
+      // Make the color intensity based on the noise pattern
+      float colorIntensity = smoothstep(0.1, 0.6, noisePattern * 0.5 + 0.5) * 0.8;
+      
+      // Create dynamic gradient but keep it semi-transparent
+      vec3 gradientColor = mix(c1, c3, uv.y + sin(uv.x * 4.0 + time) * 0.1);
+      // Skip using color2 (background color) entirely to keep transparency
       
       // Calculate pseudo-normals from noise for specular effect
       float eps = 0.01;
@@ -154,8 +161,13 @@ const AbstractBackground = ({
       vec3 specular1 = calculateSpecular(normal, viewDir, lightDir1, vec3(1.0, 0.8, 0.6), 32.0); // Warm light
       vec3 specular2 = calculateSpecular(normal, viewDir, lightDir2, vec3(0.6, 0.8, 1.0), 16.0); // Cool light
       
-      // Apply color and noise with specular reflections
-      vec3 finalColor = mix(gradientColor, c3, combinedNoise * 0.5);
+      // Apply color and noise with specular reflections, but with transparency based on noise
+      vec3 finalColor = gradientColor * colorIntensity; // Use color intensity to control base opacity
+      
+      // Add more transparent areas by only adding color where noise is significant
+      finalColor *= smoothstep(0.2, 0.6, combinedNoise);
+      
+      // Add specular highlights for visual interest
       finalColor += specular1 * 0.3 + specular2 * 0.3;
       
       // Create dynamic particles
@@ -216,7 +228,9 @@ const AbstractBackground = ({
       float radialGradient = 1.0 - smoothstep(0.0, 1.5, distFromCenter);
       
       // Apply the fade out to the alpha channel with improved smoothness
-      float alpha = pow(1.0 - edgeFade, 1.4) * radialGradient; // Enhanced falloff
+      // Multiply by noise-based color intensity for varied transparency
+      float noiseBasedAlpha = snoise(vec2(uv.x * 7.0 + time * 0.3, uv.y * 7.0 - time * 0.2)) * 0.5 + 0.5;
+      float alpha = pow(1.0 - edgeFade, 1.4) * radialGradient * max(0.1, noiseBasedAlpha); // Enhanced falloff with noise
       
       // Apply alpha and output final color
       gl_FragColor = vec4(finalColor, alpha);
