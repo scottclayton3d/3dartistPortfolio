@@ -206,19 +206,29 @@ const AbstractBackground = ({
       // Enhance contrast
       finalColor = pow(finalColor, vec3(0.95));
       
-      // Output final color
-      gl_FragColor = vec4(finalColor, 1.0);
+      // Calculate distance from center for edge fading
+      float distFromCenter = length(uv - 0.5) * 2.0; // 0 at center, ~1.0 at corners
+      
+      // Create a smooth fade out effect at the edges
+      float edgeFade = smoothstep(0.8, 1.4, distFromCenter);
+      
+      // Apply the fade out to the alpha channel
+      float alpha = 1.0 - edgeFade;
+      
+      // Apply alpha and output final color
+      gl_FragColor = vec4(finalColor, alpha);
     }
   `;
   
   return (
     <mesh ref={meshRef} position={[0, 0, 0]}>
-      <planeGeometry args={[2, 2]} />
+      <planeGeometry args={[2.5, 2.5]} /> {/* Slightly larger to allow for fade out */}
       <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms.current}
+        transparent={true}
       />
     </mesh>
   );
