@@ -86,36 +86,125 @@ const AbstractBackground = ({
       return 130.0 * dot(m, g);
     }
     
+    // 3D Noise function (combination of 2D noise for 3D effect)
+    float noise3D(vec3 p) {
+      float xy = snoise(p.xy);
+      float yz = snoise(p.yz + vec2(43.84, 75.28));
+      float zx = snoise(p.zx + vec2(94.53, 15.72));
+      return (xy + yz + zx) / 3.0;
+    }
+    
+    // Light calculation for specular reflection
+    vec3 calculateSpecular(vec3 normal, vec3 viewDir, vec3 lightDir, vec3 lightColor, float shininess) {
+      vec3 halfwayDir = normalize(lightDir + viewDir);
+      float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+      return lightColor * spec;
+    }
+    
+    // HSL to RGB conversion
+    vec3 hsl2rgb(vec3 c) {
+      vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+      return c.z + c.y * (rgb - 0.5) * (1.0 - abs(2.0 * c.z - 1.0));
+    }
+    
     void main() {
       vec2 uv = vUv;
       
-      // Use mouse position to influence the noise pattern
-      float mouseInfluence = 0.4;
+      // Create view direction for specular calculation
+      vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0));
+      
+      // Use mouse position to influence the noise pattern with more responsiveness
+      float mouseInfluence = 0.6;
       vec2 mouseUV = (mousePosition * 2.0 - 1.0) * mouseInfluence;
       
-      // Create flowing noise fields
-      float n1 = snoise(vec2(uv.x * 3.0 + time * 0.2 + mouseUV.x, uv.y * 3.0 - time * 0.1 + mouseUV.y));
-      float n2 = snoise(vec2(uv.x * 5.0 - time * 0.3, uv.y * 5.0 + time * 0.2));
-      float n3 = snoise(vec2(uv.x * 8.0 + time * 0.4, uv.y * 8.0 - time * 0.3));
+      // Create dynamic flowing noise fields with more variation
+      float timeScale = time * 0.3;
+      float n1 = snoise(vec2(uv.x * 3.0 + timeScale + mouseUV.x, uv.y * 3.0 - timeScale * 0.7 + mouseUV.y));
+      float n2 = snoise(vec2(uv.x * 5.0 - timeScale * 1.1, uv.y * 5.0 + timeScale * 0.8));
+      float n3 = snoise(vec2(uv.x * 8.0 + timeScale * 1.5, uv.y * 8.0 - timeScale * 0.9));
+      float n4 = snoise(vec2(uv.x * 12.0 - timeScale * 0.4, uv.y * 12.0 + timeScale * 0.3)); // Higher frequency detail
       
-      // Combine noise layers
-      float combinedNoise = (n1 * 0.5 + n2 * 0.3 + n3 * 0.2) * 0.6 + 0.4;
+      // Combine noise layers with different weightings
+      float combinedNoise = (n1 * 0.4 + n2 * 0.3 + n3 * 0.2 + n4 * 0.1) * 0.7 + 0.3;
       
-      // Create gradient background
-      vec3 gradientColor = mix(color1, color2, uv.y);
-      gradientColor = mix(gradientColor, color3, length(uv - 0.5) * 1.2);
+      // Create gradient background with more color variation
+      float hueShift = time * 0.05; // Subtle hue shift over time
+      vec3 color1Shifted = hsl2rgb(vec3(fract(hueShift + 0.0), 0.7, 0.5)); // Animated hue
+      vec3 color3Shifted = hsl2rgb(vec3(fract(hueShift + 0.3), 0.7, 0.5)); // Animated hue with offset
       
-      // Apply noise as glow/color variation
-      vec3 finalColor = mix(gradientColor, color3, combinedNoise * 0.5);
+      // Mix original colors with shifted ones for subtle animation
+      vec3 c1 = mix(color1, color1Shifted, 0.3);
+      vec3 c3 = mix(color3, color3Shifted, 0.3);
       
-      // Add subtle pulsing effect
+      // Create dynamic gradient background
+      vec3 gradientColor = mix(c1, color2, uv.y + sin(uv.x * 4.0 + time) * 0.1);
+      gradientColor = mix(gradientColor, c3, length(uv - 0.5) * 1.2);
+      
+      // Calculate pseudo-normals from noise for specular effect
+      float eps = 0.01;
+      float nx = combinedNoise - snoise(vec2(uv.x + eps, uv.y));
+      float ny = combinedNoise - snoise(vec2(uv.x, uv.y + eps));
+      vec3 normal = normalize(vec3(nx, ny, 0.5));
+      
+      // Dynamic light positions that move over time
+      vec3 lightDir1 = normalize(vec3(sin(time * 0.5) * 0.5, cos(time * 0.4) * 0.5, 1.0));
+      vec3 lightDir2 = normalize(vec3(cos(time * 0.3) * 0.5, sin(time * 0.6) * 0.5, 1.0));
+      
+      // Calculate specular highlights
+      vec3 specular1 = calculateSpecular(normal, viewDir, lightDir1, vec3(1.0, 0.8, 0.6), 32.0); // Warm light
+      vec3 specular2 = calculateSpecular(normal, viewDir, lightDir2, vec3(0.6, 0.8, 1.0), 16.0); // Cool light
+      
+      // Apply color and noise with specular reflections
+      vec3 finalColor = mix(gradientColor, c3, combinedNoise * 0.5);
+      finalColor += specular1 * 0.3 + specular2 * 0.3;
+      
+      // Create dynamic particles
+      float particles = 0.0;
+      
+      // First particle layer (small and numerous)
+      for (int i = 0; i < 5; i++) {
+        float t = time * (0.2 + float(i) * 0.02); // Different speeds
+        float density = 20.0 + float(i) * 10.0; // Different densities
+        vec2 gridPos = fract(uv * density + vec2(t * (0.5 + float(i) * 0.1), cos(t) * 0.2));
+        float dist = length(gridPos - 0.5);
+        float particle = smoothstep(0.05, 0.0, dist) * 0.5;
+        
+        // Make some particles brighter based on noise
+        float brightness = snoise(vec2(float(i) * 10.0, time * 0.1)) * 0.5 + 0.5;
+        particles += particle * brightness;
+      }
+      
+      // Second particle layer (larger and more scattered)
+      for (int i = 0; i < 3; i++) {
+        float t = time * (0.1 + float(i) * 0.03); // Slower, different speeds
+        vec2 gridPos = fract(uv * (10.0 - float(i) * 2.0) + vec2(sin(t) * 0.1, t));
+        float dist = length(gridPos - 0.5);
+        
+        // Larger particles with soft edges
+        float particle = smoothstep(0.15, 0.02, dist) * 0.7;
+        
+        // Add "twinkling" effect
+        float twinkle = sin(time * (3.0 + float(i))) * 0.5 + 0.5;
+        particles += particle * twinkle;
+      }
+      
+      // Add particles with color variation
+      finalColor += particles * mix(c1, c3, uv.y);
+      
+      // Add pulsing glow effect
       float pulse = (sin(time) * 0.5 + 0.5) * 0.2;
-      finalColor += color1 * pulse * (1.0 - length(uv - 0.5));
+      finalColor += c1 * pulse * (1.0 - length(uv - 0.5)) * 2.0;
       
-      // Vignette effect
-      float vignette = 1.0 - dot((uv - 0.5) * 1.2, (uv - 0.5) * 1.2);
-      vignette = pow(vignette, 1.5);
+      // Enhanced vignette effect
+      float vignette = 1.0 - dot((uv - 0.5) * 1.3, (uv - 0.5) * 1.3);
+      vignette = pow(vignette, 1.7);
       finalColor *= vignette;
+      
+      // Add subtle fog/atmospheric effect
+      finalColor = mix(finalColor, mix(color2, c3, 0.5) * 0.5, 1.0 - vignette * 0.8);
+      
+      // Enhance contrast
+      finalColor = pow(finalColor, vec3(0.95));
       
       // Output final color
       gl_FragColor = vec4(finalColor, 1.0);

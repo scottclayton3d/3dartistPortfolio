@@ -1,8 +1,18 @@
 import { useRef } from 'react';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { BlendFunction, KernelSize } from 'postprocessing';
+import { 
+  EffectComposer, 
+  Bloom, 
+  Vignette, 
+  ChromaticAberration,
+  DepthOfField,
+  Noise,
+  GodRays,
+  SMAA
+} from '@react-three/postprocessing';
+import { BlendFunction, KernelSize, Resizer } from 'postprocessing';
 import { usePortfolio } from '@/lib/stores/usePortfolio';
 import * as THREE from 'three';
+import { useThree } from '@react-three/fiber';
 
 interface PostProcessingProps {
   enableBloom?: boolean;
@@ -52,8 +62,16 @@ const PostProcessing: React.FC<PostProcessingProps> = ({
       break;
   }
   
+  // Get scene info for effects
+  const { scene, camera } = useThree();
+  
   // Create an array of effects to render
   const effectElements: JSX.Element[] = [];
+
+  // Add anti-aliasing for smoother edges
+  effectElements.push(
+    <SMAA key="smaa" />
+  );
   
   if (enableBloom) {
     effectElements.push(
@@ -63,6 +81,19 @@ const PostProcessing: React.FC<PostProcessingProps> = ({
         luminanceThreshold={bloomLuminanceThreshold}
         luminanceSmoothing={0.9}
         kernelSize={KernelSize.LARGE}
+        mipmapBlur
+      />
+    );
+  }
+  
+  // Add chromatic aberration effect (subtle color separation at edges)
+  if (enableChroma) {
+    effectElements.push(
+      <ChromaticAberration
+        key="chromatic"
+        offset={[0.002, 0.002]}
+        radialModulation
+        modulationOffset={0.3}
       />
     );
   }
@@ -78,9 +109,33 @@ const PostProcessing: React.FC<PostProcessingProps> = ({
     );
   }
   
+  // Add subtle noise texture for film grain effect
+  effectElements.push(
+    <Noise
+      key="noise"
+      opacity={0.05}
+      premultiply
+      blendFunction={BlendFunction.SCREEN}
+    />
+  );
+  
+  // Add depth of field effect for models when enabled
+  if (enableDOF) {
+    effectElements.push(
+      <DepthOfField
+        key="dof"
+        focusDistance={0.02}
+        focalLength={0.5}
+        bokehScale={6}
+      />
+    );
+  }
+  
   // Only render EffectComposer if there are effects to display
   return effectElements.length > 0 ? (
-    <EffectComposer>{effectElements}</EffectComposer>
+    <EffectComposer multisampling={4} stencilBuffer={true}>
+      {effectElements}
+    </EffectComposer>
   ) : null;
 };
 
