@@ -22,7 +22,7 @@ const RayMarchVisualizer = ({
     color2: { value: new THREE.Color(colorPalette[1]) },
     color3: { value: new THREE.Color(colorPalette[2]) },
     mousePosition: { value: new THREE.Vector2(0.5, 0.5) },
-    cameraPosition: { value: new THREE.Vector3() },
+    cameraPos: { value: new THREE.Vector3() },
     cameraTarget: { value: new THREE.Vector3() },
     intensity: { value: intensity },
     aspect: { value: size.width / size.height }
@@ -41,7 +41,7 @@ const RayMarchVisualizer = ({
       );
       
       // Update camera info for ray marching
-      materialRef.current.uniforms.cameraPosition.value.copy(camera.position);
+      materialRef.current.uniforms.cameraPos.value.copy(camera.position);
       
       // Create target that's centered at origin
       const target = new THREE.Vector3(0, 0, 0);
@@ -81,7 +81,7 @@ const RayMarchVisualizer = ({
     uniform vec3 color1;
     uniform vec3 color2;
     uniform vec3 color3;
-    uniform vec3 cameraPosition;
+    uniform vec3 cameraPos;
     uniform vec3 cameraTarget;
     uniform float intensity;
     uniform float aspect;

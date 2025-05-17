@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import ThreeScene from '@/components/3d/ThreeScene';
-import RayMarchVisualizer from '@/components/3d/RayMarchVisualizer';
+import SimpleRayMarch from '@/components/3d/SimpleRayMarch';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -73,7 +73,7 @@ const Hero = () => {
           enablePostProcessing={true}
           effectsPreset="medium"
         >
-          <RayMarchVisualizer 
+          <SimpleRayMarch 
             colorPalette={['#ff3366', '#101010', '#00ffd1']}
             intensity={1.2}
           />
