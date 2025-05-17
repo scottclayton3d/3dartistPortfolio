@@ -4,6 +4,7 @@ import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { usePortfolio } from '@/lib/stores/usePortfolio';
 import FloatingParticles from './FloatingParticles';
+import PostProcessing from './PostProcessing';
 
 interface ThreeSceneProps {
   children?: React.ReactNode;
@@ -11,6 +12,8 @@ interface ThreeSceneProps {
   backgroundColor?: string;
   ambientLightIntensity?: number;
   cameraPosition?: [number, number, number];
+  enablePostProcessing?: boolean;
+  effectsPreset?: 'subtle' | 'medium' | 'intense' | 'custom';
 }
 
 // Scene setup component to manage effects that need access to the scene
@@ -57,7 +60,9 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   orbitControls = true,
   backgroundColor = '#121212',
   ambientLightIntensity = 0.5,
-  cameraPosition = [0, 0, 5]
+  cameraPosition = [0, 0, 5],
+  enablePostProcessing = true,
+  effectsPreset = 'subtle'
 }) => {
   const [isGLAvailable, setIsGLAvailable] = useState(true);
   
@@ -138,6 +143,16 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
           dampingFactor={0.05}
           rotateSpeed={0.5}
           enableDamping
+        />
+      )}
+      
+      {/* Post-processing effects */}
+      {enablePostProcessing && (
+        <PostProcessing 
+          enableBloom={true}
+          enableChroma={true}
+          enableVignette={true}
+          preset={effectsPreset}
         />
       )}
     </Canvas>
