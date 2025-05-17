@@ -2,6 +2,9 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
+import TerrainShader from '@/components/shaders/TerrainShader';
+import SkyShader from '@/components/shaders/SkyShader';
+import WaterShader from '@/components/shaders/WaterShader';
 import * as THREE from 'three';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -51,7 +54,7 @@ const TerrainViewer = () => {
     height: 4,
     scale: 20,
     wireframe: false,
-    material: 'phong', // Changed to phong for better performance
+    material: 'shader', // Use our custom shader by default
     seed: Math.random() * 1000,
     roughness: 0.7,
     metalness: 0.1,
@@ -59,6 +62,9 @@ const TerrainViewer = () => {
     smoothShading: true,
     rotation: 0
   });
+  
+  const [showSky, setShowSky] = useState(true);
+  const [timeOfDay, setTimeOfDay] = useState(0.5); // 0 to 1, noon is 0.5
   
   const [heightmapImage, setHeightmapImage] = useState<string | null>(null);
   
@@ -270,6 +276,7 @@ const TerrainViewer = () => {
                   <SelectItem value="phong">Phong</SelectItem>
                   <SelectItem value="basic">Basic</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="shader">Custom Shader</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -526,6 +533,24 @@ const TerrainMesh = ({
       terrainMaterial = <meshNormalMaterial
         flatShading={!smoothShading}
         wireframe={wireframe}
+      />;
+      break;
+    case 'shader':
+      // Use our custom terrain shader
+      terrainMaterial = <TerrainShader 
+        elevation={height} 
+        wireframe={wireframe}
+        colorMap={[
+          '#2e4a12', // Low terrain (dark green)
+          '#4b7620', // Low-mid terrain (medium green)
+          '#6b8e23', // Mid terrain (olive)
+          '#a1b55d', // Mid-high terrain (light olive)
+          '#c5c9a0', // High terrain (light tan)
+          '#e6e6e6'  // Peaks (snow white)
+        ]}
+        waterLevel={0.05}
+        snowLevel={0.75}
+        noiseScale={0.08}
       />;
       break;
     case 'standard':
