@@ -1,17 +1,64 @@
-import { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PresentationControls, Stage, useGLTF } from '@react-three/drei';
+import { Suspense, useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Center, Bounds } from '@react-three/drei';
 import * as THREE from 'three';
 import { ModelViewerProps } from '@/types';
 import { isMobileDevice } from '@/lib/helpers';
 
-// Simple model component
-function Model({ modelUrl }: { modelUrl: string }) {
-  const { scene } = useGLTF(modelUrl);
-  // Create a clone of the scene to prevent sharing issues
-  const clonedScene = scene.clone();
+// Default geometries if model loading fails
+function FallbackModel() {
+  const groupRef = useRef<THREE.Group>(null);
   
-  return <primitive object={clonedScene} />;
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += delta * 0.5;
+    }
+  });
+  
+  return (
+    <group ref={groupRef}>
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#FF3366" />
+      </mesh>
+      <mesh position={[1.5, 0, 0]}>
+        <sphereGeometry args={[0.7, 32, 32]} />
+        <meshStandardMaterial color="#00FFD1" />
+      </mesh>
+      <mesh position={[-1.5, 0, 0]}>
+        <torusGeometry args={[0.6, 0.2, 16, 32]} />
+        <meshStandardMaterial color="#FFD700" />
+      </mesh>
+    </group>
+  );
+}
+
+// Simple model component with error handling
+function Model({ modelUrl }: { modelUrl: string }) {
+  const groupRef = useRef<THREE.Group>(null);
+  
+  // Try to load the model, handle errors gracefully
+  let model;
+  try {
+    const { scene } = useGLTF(modelUrl);
+    model = scene.clone();
+  } catch (error) {
+    console.warn('Error loading model:', error);
+    return <FallbackModel />;
+  }
+  
+  // Simple animation
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += delta * 0.2;
+    }
+  });
+  
+  return (
+    <group ref={groupRef}>
+      <primitive object={model} />
+    </group>
+  );
 }
 
 // Main ModelViewer component with simplified structure
@@ -38,43 +85,32 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
           dpr={[1, 1.5]} // Lower DPR for better performance
           style={{ background: backgroundColor }}
         >
-          {/* Use manual lighting setup instead of Stage */}
-          <group>
-            <ambientLight intensity={lightIntensity} />
-            <directionalLight position={[10, 10, 5]} intensity={0.5} />
-            <directionalLight position={[-10, -10, -5]} intensity={0.2} />
-            
-            {/* Use PresentationControls for better user interaction */}
-            <PresentationControls
-              rotation={[0, -Math.PI / 4, 0]}
-              polar={[-Math.PI / 4, Math.PI / 4]}
-              azimuth={[-Math.PI / 4, Math.PI / 4]}
-              config={{ mass: 2, tension: 400 }}
-              snap={{ mass: 4, tension: 200 }}
-              speed={1.5}
-              zoom={1}
-              enabled={interactive}
-            >
-              <Model modelUrl={modelUrl} />
-            </PresentationControls>
-          </Stage>
+          {/* Basic lighting setup */}
+          <ambientLight intensity={lightIntensity} />
+          <directionalLight position={[10, 10, 5]} intensity={0.5} />
+          <directionalLight position={[-10, -10, -5]} intensity={0.2} />
+          <spotLight position={[5, 5, 5]} angle={0.15} penumbra={1} intensity={0.8} castShadow />
           
-          {/* Add orbit controls if interactive */}
-          {interactive && !isMobile && (
+          {/* Center and bound the model to ensure it fits in view */}
+          <Bounds fit clip observe margin={1.2}>
+            <Center>
+              <Model modelUrl={modelUrl} />
+            </Center>
+          </Bounds>
+          
+          {/* Controls */}
+          {interactive && (
             <OrbitControls 
               enablePan={false}
               enableZoom={true}
               minPolarAngle={Math.PI / 6}
               maxPolarAngle={Math.PI / 2}
-              minDistance={2}
-              maxDistance={8}
+              minDistance={1.5}
+              maxDistance={10}
               autoRotate={autoRotate}
               autoRotateSpeed={1}
             />
           )}
-          
-          {/* Add base lighting */}
-          <ambientLight intensity={0.5} />
         </Canvas>
       </Suspense>
     </div>

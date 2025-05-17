@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Environment } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { usePortfolio } from '@/lib/stores/usePortfolio';
 import FloatingParticles from './FloatingParticles';
@@ -112,16 +112,17 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       {/* Scene Setup */}
       <SceneSetup backgroundColor={backgroundColor} />
       
-      {/* Environment & Lighting */}
-      <Environment preset={environmentPreset} background={false} />
+      {/* Lighting Setup */}
       <ambientLight intensity={ambientLightIntensity} />
       <directionalLight 
         position={[5, 5, 5]} 
-        intensity={1} 
+        intensity={0.8} 
         castShadow 
         shadow-mapSize-width={1024} 
         shadow-mapSize-height={1024}
       />
+      <hemisphereLight intensity={0.4} groundColor="#121212" />
+      <pointLight position={[-10, -10, -10]} intensity={0.3} />
       
       {/* Floating Particles Background */}
       <FloatingParticles count={300} radius={10} />
