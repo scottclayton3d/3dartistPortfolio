@@ -52,28 +52,36 @@ const PostProcessing: React.FC<PostProcessingProps> = ({
       break;
   }
   
-  return (
-    <EffectComposer>
-      {enableBloom ? (
-        <Bloom 
-          key="bloom"
-          intensity={bloomIntensity}
-          luminanceThreshold={bloomLuminanceThreshold}
-          luminanceSmoothing={0.9}
-          kernelSize={KernelSize.LARGE}
-        />
-      ) : null}
-      
-      {enableVignette ? (
-        <Vignette
-          key="vignette"
-          offset={0.3}
-          darkness={vignetteIntensity}
-          blendFunction={BlendFunction.NORMAL}
-        />
-      ) : null}
-    </EffectComposer>
-  );
+  // Create an array of effects to render
+  const effectElements: JSX.Element[] = [];
+  
+  if (enableBloom) {
+    effectElements.push(
+      <Bloom 
+        key="bloom"
+        intensity={bloomIntensity}
+        luminanceThreshold={bloomLuminanceThreshold}
+        luminanceSmoothing={0.9}
+        kernelSize={KernelSize.LARGE}
+      />
+    );
+  }
+  
+  if (enableVignette) {
+    effectElements.push(
+      <Vignette
+        key="vignette"
+        offset={0.3}
+        darkness={vignetteIntensity}
+        blendFunction={BlendFunction.NORMAL}
+      />
+    );
+  }
+  
+  // Only render EffectComposer if there are effects to display
+  return effectElements.length > 0 ? (
+    <EffectComposer>{effectElements}</EffectComposer>
+  ) : null;
 };
 
 export default PostProcessing;
