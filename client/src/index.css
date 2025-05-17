@@ -157,6 +157,24 @@
   .loading-spinner {
     @apply animate-spin rounded-full border-4 border-muted border-t-accent;
   }
+  
+  /* Infinite drag gallery */
+  .infinite-gallery-container {
+    @apply select-none;
+  }
+  
+  .infinite-gallery-container .gallery-item {
+    @apply shadow-lg cursor-grab rounded-lg overflow-hidden transition-shadow duration-300;
+    box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.5);
+  }
+  
+  .infinite-gallery-container .gallery-item:hover {
+    box-shadow: 0 15px 40px -10px rgba(255, 51, 102, 0.3);
+  }
+  
+  .infinite-gallery-container .gallery-item.active {
+    @apply cursor-grabbing;
+  }
 }
 
 #root {
@@ -208,3 +226,71 @@ canvas {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* Infinite drag gallery styles */
+.gallery-item {
+  user-select: none;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+.gallery-item img {
+  pointer-events: none;
+}
+
+.infinite-gallery-container::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to top, rgba(26, 26, 26, 1), rgba(26, 26, 26, 0));
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Add some hints for interactive gallery */
+.infinite-gallery-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(26, 26, 26, 0.7);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeInOut 5s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Animated gradient for gallery background */
+.gallery-gradient-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(0, 0, 0, 0), rgba(255, 51, 102, 0.05), rgba(0, 255, 209, 0.05), rgba(0, 0, 0, 0));
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
+  z-index: -1;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
+}
+
