@@ -11,7 +11,6 @@ interface ThreeSceneProps {
   backgroundColor?: string;
   ambientLightIntensity?: number;
   cameraPosition?: [number, number, number];
-  environmentPreset?: 'sunset' | 'dawn' | 'night' | 'warehouse' | 'forest' | 'apartment' | 'studio' | 'city' | 'park' | 'lobby';
 }
 
 // Scene setup component to manage effects that need access to the scene
@@ -58,8 +57,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   orbitControls = true,
   backgroundColor = '#121212',
   ambientLightIntensity = 0.5,
-  cameraPosition = [0, 0, 5],
-  environmentPreset = 'studio'
+  cameraPosition = [0, 0, 5]
 }) => {
   const [isGLAvailable, setIsGLAvailable] = useState(true);
   

@@ -68,9 +68,8 @@ const Hero = () => {
       <div className="absolute inset-0 -z-10">
         <ThreeScene 
           orbitControls={false}
-          ambientLightIntensity={0.3}
+          ambientLightIntensity={0.5}
           cameraPosition={[0, 0, 5]}
-          environmentPreset="night"
         >
           <ArtworkModel 
             modelUrl="/geometries/heart.gltf"
