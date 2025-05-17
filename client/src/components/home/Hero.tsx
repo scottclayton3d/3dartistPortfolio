@@ -1,10 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import ThreeScene from '@/components/3d/ThreeScene';
-import ArtworkModel from '@/components/3d/ArtworkModel';
+import AbstractBackground from '@/components/3d/AbstractBackground';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -64,18 +64,17 @@ const Hero = () => {
       className="relative h-screen w-full flex items-center overflow-hidden"
       ref={containerRef}
     >
-      {/* Background 3D scene */}
+      {/* Background 3D scene with raymarching effect */}
       <div className="absolute inset-0 -z-10">
         <ThreeScene 
           orbitControls={false}
           ambientLightIntensity={0.5}
           cameraPosition={[0, 0, 5]}
+          enablePostProcessing={true}
+          effectsPreset="medium"
         >
-          <ArtworkModel 
-            modelUrl="/geometries/heart.gltf"
-            position={[0, 0, 0]}
-            scale={1.5}
-            animate={true}
+          <AbstractBackground 
+            colorPalette={['#ff3366', '#121212', '#00ffd1']}
           />
         </ThreeScene>
       </div>
