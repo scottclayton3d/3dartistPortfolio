@@ -13,6 +13,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/', id: 'home' },
     { name: 'Gallery', path: '/gallery', id: 'gallery' },
+    { name: 'Terrain', path: '/terrain', id: 'terrain' },
     { name: 'About', path: '/about', id: 'about' },
     { name: 'Contact', path: '/contact', id: 'contact' },
   ];
@@ -25,6 +26,8 @@ const Navbar = () => {
       setCurrentPage('home');
     } else if (path.includes('/gallery')) {
       setCurrentPage('gallery');
+    } else if (path.includes('/terrain')) {
+      setCurrentPage('terrain');
     } else if (path.includes('/about')) {
       setCurrentPage('about');
     } else if (path.includes('/contact')) {

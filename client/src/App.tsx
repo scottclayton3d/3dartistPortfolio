@@ -15,6 +15,7 @@ const GalleryPage = lazy(() => import('./pages/GalleryPage'));
 const ArtworkDetailPage = lazy(() => import('./pages/ArtworkDetailPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
+const TerrainVisualizerPage = lazy(() => import('./pages/TerrainVisualizerPage'));
 const NotFound = lazy(() => import('./pages/not-found'));
 
 // Load the ScrollTrigger plugin
@@ -96,6 +97,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/artwork/:id" element={<ArtworkDetailPage />} />
+            <Route path="/terrain" element={<TerrainVisualizerPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="*" element={<NotFound />} />
