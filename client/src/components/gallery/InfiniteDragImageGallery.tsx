@@ -18,13 +18,13 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
   
   // Gallery settings
   const settings = {
-    gap: 20,               // Gap between items
-    itemWidth: 300,        // Base item width
-    itemHeight: 220,       // Base item height
+    gap: 30,               // Gap between items
+    itemWidth: 280,        // Base item width
+    itemHeight: 200,       // Base item height
     expandedScale: 0.8,    // Scale of expanded item (relative to viewport)
-    dragSpeed: 1.3,        // Drag sensitivity
-    momentumFactor: 0.95,  // Momentum after drag (0-1)
-    friction: 0.92,        // Friction to slow down momentum
+    dragSpeed: 1.5,        // Drag sensitivity
+    momentumFactor: 0.96,  // Momentum after drag (0-1)
+    friction: 0.94,        // Friction to slow down momentum
     snapThreshold: 0.3,    // Threshold for snapping to position
   };
 
@@ -52,15 +52,81 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
     let canDrag = true;
     let originalPosition = { x: 0, y: 0, width: 0, height: 0 };
     
-    // Initial positioning - randomly distribute items
+    // Define repeating grid dimensions
+    const gridColumns = 3;
+    const gridRows = 3;
+    const repeatingFactor = 2; // How many times to repeat the grid in each direction
+    
+    // Initial positioning - create an infinite repeating grid of items
     function initializePositions() {
       const containerWidth = container.offsetWidth;
       const containerHeight = container.offsetHeight;
       
+      // Calculate spacing
+      const cellWidth = settings.itemWidth + settings.gap;
+      const cellHeight = settings.itemHeight + settings.gap;
+      
+      // Calculate total grid dimensions
+      const totalGridWidth = cellWidth * gridColumns;
+      const totalGridHeight = cellHeight * gridRows;
+      
+      // Calculate origin to center the grid
+      const originX = -totalGridWidth / 2;
+      const originY = -totalGridHeight / 2;
+      
+      // Remove existing items if any (for reinitialization)
+      Array.from(container.querySelectorAll('.gallery-item-clone')).forEach(clone => {
+        clone.remove();
+      });
+      
+      // Create the repeating grid by cloning items
+      for (let repeatX = -repeatingFactor; repeatX <= repeatingFactor; repeatX++) {
+        for (let repeatY = -repeatingFactor; repeatY <= repeatingFactor; repeatY++) {
+          // Skip the center grid (already covered by original items)
+          if (repeatX === 0 && repeatY === 0) continue;
+          
+          // Create clones for this grid section
+          items.forEach((item, index) => {
+            const clone = item.cloneNode(true) as HTMLElement;
+            clone.classList.add('gallery-item-clone');
+            container.appendChild(clone);
+            
+            // Calculate position within this grid
+            const row = Math.floor(index / gridColumns);
+            const col = index % gridColumns;
+            
+            const x = originX + (col * cellWidth) + (repeatX * totalGridWidth);
+            const y = originY + (row * cellHeight) + (repeatY * totalGridHeight);
+            
+            clone.style.width = `${settings.itemWidth}px`;
+            clone.style.height = `${settings.itemHeight}px`;
+            clone.style.transform = `translate(${x}px, ${y}px)`;
+            clone.dataset.originalX = String(x);
+            clone.dataset.originalY = String(y);
+            clone.dataset.zIndex = String(index);
+            clone.style.zIndex = String(index);
+            
+            // Add event listeners to clones
+            clone.addEventListener("click", (e) => {
+              if (!mouseHasMoved) {
+                e.preventDefault();
+                expandItem(clone);
+              }
+            });
+          });
+        }
+      }
+      
+      // Position original items in the center grid
       items.forEach((item, index) => {
         const el = item as HTMLElement;
-        const x = (Math.random() * 2 - 1) * containerWidth * 0.7;
-        const y = (Math.random() * 2 - 1) * containerHeight * 0.5;
+        
+        // Calculate position within grid
+        const row = Math.floor(index / gridColumns);
+        const col = index % gridColumns;
+        
+        const x = originX + (col * cellWidth);
+        const y = originY + (row * cellHeight);
         
         el.style.width = `${settings.itemWidth}px`;
         el.style.height = `${settings.itemHeight}px`;
@@ -88,8 +154,61 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
         targetY += dragVelocityY;
       }
       
-      // Update each item position
-      items.forEach((item) => {
+      // Calculate grid dimensions for wrapping effect
+      const cellWidth = settings.itemWidth + settings.gap;
+      const cellHeight = settings.itemHeight + settings.gap;
+      const totalGridWidth = cellWidth * gridColumns;
+      const totalGridHeight = cellHeight * gridRows;
+      
+      // Check if we need to wrap the position (infinite scrolling effect)
+      // Use a partial wrapping threshold for a smoother transition
+      const wrapThreshold = 0.7;
+      
+      if (Math.abs(currentX) > totalGridWidth * wrapThreshold) {
+        // Wrap X position
+        const wrapDirection = currentX > 0 ? -1 : 1;
+        currentX += wrapDirection * totalGridWidth;
+        targetX += wrapDirection * totalGridWidth;
+        
+        // Apply a subtle fade effect during wrap
+        const allItems = document.querySelectorAll('.gallery-item, .gallery-item-clone');
+        gsap.to(allItems, {
+          opacity: 0.7,
+          duration: 0.2,
+          onComplete: () => {
+            gsap.to(allItems, { 
+              opacity: 1, 
+              duration: 0.3,
+              stagger: 0.01
+            });
+          }
+        });
+      }
+      
+      if (Math.abs(currentY) > totalGridHeight * wrapThreshold) {
+        // Wrap Y position
+        const wrapDirection = currentY > 0 ? -1 : 1;
+        currentY += wrapDirection * totalGridHeight;
+        targetY += wrapDirection * totalGridHeight;
+        
+        // Apply a subtle fade effect during wrap
+        const allItems = document.querySelectorAll('.gallery-item, .gallery-item-clone');
+        gsap.to(allItems, {
+          opacity: 0.7,
+          duration: 0.2,
+          onComplete: () => {
+            gsap.to(allItems, { 
+              opacity: 1, 
+              duration: 0.3,
+              stagger: 0.01
+            });
+          }
+        });
+      }
+      
+      // Update all items position (including clones)
+      const allItems = Array.from(container.querySelectorAll('.gallery-item, .gallery-item-clone'));
+      allItems.forEach((item) => {
         if (item === expandedItem) return;
         
         const el = item as HTMLElement;
@@ -113,7 +232,9 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
     function updateVisibleItems() {
       const containerRect = container.getBoundingClientRect();
       
-      items.forEach((item) => {
+      // Update all items (original and clones)
+      const allItems = Array.from(container.querySelectorAll('.gallery-item, .gallery-item-clone'));
+      allItems.forEach((item) => {
         if (item === expandedItem) return;
         
         const el = item as HTMLElement;
@@ -122,7 +243,7 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
         const centerY = rect.top + rect.height / 2;
         
         // Check if item is within viewport with some margin
-        const margin = 100;
+        const margin = 200;
         const isVisible = (
           centerX > -margin &&
           centerX < window.innerWidth + margin &&
@@ -130,11 +251,12 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
           centerY < window.innerHeight + margin
         );
         
-        // Update visibility
+        // Update visibility with a more subtle effect
         gsap.to(el, {
-          autoAlpha: isVisible ? 1 : 0.3,
-          scale: isVisible ? 1 : 0.8,
-          duration: 0.3
+          autoAlpha: isVisible ? 1 : 0.2,
+          scale: isVisible ? 1 : 0.85,
+          duration: 0.4,
+          ease: "power2.out"
         });
       });
     }
