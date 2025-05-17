@@ -263,11 +263,21 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
     
     // Expand an item when clicked
     function expandItem(item: HTMLElement) {
-      if (isExpanded) return;
+      if (isExpanded || isDragging || mouseHasMoved) return;
+      
       isExpanded = true;
       canDrag = false;
       setExpandedItem(item);
       
+      // Find artwork ID from the element
+      const itemId = item.getAttribute('data-artwork-id');
+      if (itemId) {
+        // If it's a real item with an ID, navigate to the detail page instead
+        window.location.href = `/artwork/${itemId}`;
+        return;
+      }
+      
+      // For clones without IDs, show expanded view in gallery
       // Store original position for later
       const rect = item.getBoundingClientRect();
       originalPosition = {
@@ -523,6 +533,7 @@ const InfiniteDragImageGallery: React.FC<InfiniteDragImageGalleryProps> = ({ art
             key={artwork.id}
             ref={(el) => setItemRef(el, artwork.id)}
             className="gallery-item absolute"
+            data-artwork-id={artwork.id}
           >
             <div className="w-full h-full overflow-hidden rounded-lg group">
               <img 
