@@ -1,111 +1,27 @@
-import { useRef, useState, useEffect, Suspense } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { useGLTF, Environment, Html, ContactShadows } from '@react-three/drei';
-import { useSpring, animated } from '@react-spring/three';
+import { Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, PresentationControls, Stage, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { useAudio } from '@/lib/stores/useAudio';
-import { usePortfolio } from '@/lib/stores/usePortfolio';
 import { ModelViewerProps } from '@/types';
 import { isMobileDevice } from '@/lib/helpers';
 
-// Model component which handles loading the 3D model
-const Model = ({ 
-  modelUrl = '/geometries/heart.gltf',
-  autoRotate = true,
-  interactive = true
-}: { 
-  modelUrl: string;
-  autoRotate?: boolean;
-  interactive?: boolean;
-}) => {
-  const groupRef = useRef<THREE.Group>(null);
-  const { playHit } = useAudio();
-  const { isModelInteractive } = usePortfolio();
+// Simple model component
+function Model({ modelUrl }: { modelUrl: string }) {
   const { scene } = useGLTF(modelUrl);
+  // Create a clone of the scene to prevent sharing issues
+  const clonedScene = scene.clone();
   
-  // Clone the scene to avoid sharing between instances
-  const modelScene = useRef(scene.clone());
-  
-  // Setup spring animation for hover effect
-  const [hovered, setHovered] = useState(false);
-  const [clicked, setClicked] = useState(false);
-  
-  const { scale, rotation } = useSpring({
-    scale: clicked ? 1.2 : hovered ? 1.1 : 1,
-    rotation: hovered ? [0, THREE.MathUtils.degToRad(45), 0] : [0, 0, 0],
-    config: { mass: 1, tension: 170, friction: 26 },
-  });
-  
-  // Handle auto-rotation
-  useFrame((state, delta) => {
-    if (!groupRef.current) return;
-    
-    if (autoRotate && !hovered) {
-      groupRef.current.rotation.y += delta * 0.3;
-    }
-  });
-  
-  // Reset to default position on unmount
-  useEffect(() => {
-    return () => setClicked(false);
-  }, []);
-  
-  // Handle interactions
-  const handleClick = () => {
-    if (interactive && isModelInteractive) {
-      setClicked(!clicked);
-      playHit();
-    }
-  };
-  
-  // Only allow hover effects if interactive
-  const handlePointerOver = () => {
-    if (interactive && isModelInteractive) {
-      setHovered(true);
-      document.body.style.cursor = 'pointer';
-    }
-  };
-  
-  const handlePointerOut = () => {
-    if (interactive && isModelInteractive) {
-      setHovered(false);
-      document.body.style.cursor = 'auto';
-    }
-  };
-  
-  return (
-    <animated.group
-      ref={groupRef}
-      scale={scale}
-      rotation={rotation}
-      onClick={handleClick}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-      dispose={null}
-    >
-      <primitive object={modelScene.current} />
-    </animated.group>
-  );
-};
+  return <primitive object={clonedScene} />;
+}
 
-// Loading component displayed while model is loading
-const ModelLoading = () => (
-  <Html center>
-    <div className="flex flex-col items-center justify-center">
-      <div className="loading-spinner w-8 h-8"></div>
-      <span className="text-white text-sm mt-2">Loading Model...</span>
-    </div>
-  </Html>
-);
-
-// Main ModelViewer component
+// Main ModelViewer component with simplified structure
 const ModelViewer: React.FC<ModelViewerProps> = ({
   modelUrl = '/geometries/heart.gltf',
   artworkId,
   interactive = true,
   autoRotate = true,
   backgroundColor = '#121212',
-  lightIntensity = 0.5
+  lightIntensity = 0.7
 }) => {
   const isMobile = isMobileDevice();
   
@@ -116,27 +32,50 @@ const ModelViewer: React.FC<ModelViewerProps> = ({
           <div className="loading-spinner w-10 h-10"></div>
         </div>
       }>
-        <div className="w-full h-full">
-          <Suspense fallback={null}>
-            <Model
-              modelUrl={modelUrl}
+        <Canvas
+          camera={{ position: [0, 0, 5], fov: 45 }}
+          gl={{ antialias: true }}
+          dpr={[1, 1.5]} // Lower DPR for better performance
+          style={{ background: backgroundColor }}
+        >
+          {/* Use manual lighting setup instead of Stage */}
+          <group>
+            <ambientLight intensity={lightIntensity} />
+            <directionalLight position={[10, 10, 5]} intensity={0.5} />
+            <directionalLight position={[-10, -10, -5]} intensity={0.2} />
+            
+            {/* Use PresentationControls for better user interaction */}
+            <PresentationControls
+              rotation={[0, -Math.PI / 4, 0]}
+              polar={[-Math.PI / 4, Math.PI / 4]}
+              azimuth={[-Math.PI / 4, Math.PI / 4]}
+              config={{ mass: 2, tension: 400 }}
+              snap={{ mass: 4, tension: 200 }}
+              speed={1.5}
+              zoom={1}
+              enabled={interactive}
+            >
+              <Model modelUrl={modelUrl} />
+            </PresentationControls>
+          </Stage>
+          
+          {/* Add orbit controls if interactive */}
+          {interactive && !isMobile && (
+            <OrbitControls 
+              enablePan={false}
+              enableZoom={true}
+              minPolarAngle={Math.PI / 6}
+              maxPolarAngle={Math.PI / 2}
+              minDistance={2}
+              maxDistance={8}
               autoRotate={autoRotate}
-              interactive={interactive && !isMobile}
+              autoRotateSpeed={1}
             />
-            {/* Ground plane with shadow */}
-            <ContactShadows 
-              opacity={0.4}
-              scale={10}
-              blur={1}
-              far={10}
-              resolution={256}
-              color="#000000"
-              position={[0, -1, 0]}
-            />
-            {/* Add environment lighting */}
-            <Environment preset="studio" />
-          </Suspense>
-        </div>
+          )}
+          
+          {/* Add base lighting */}
+          <ambientLight intensity={0.5} />
+        </Canvas>
       </Suspense>
     </div>
   );
