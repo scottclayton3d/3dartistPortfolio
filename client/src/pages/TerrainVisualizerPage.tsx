@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Stats } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -46,11 +47,11 @@ const TerrainVisualizerPage = () => {
 // Terrain visualization component 
 const TerrainViewer = () => {
   const [terrainSettings, setTerrainSettings] = useState({
-    resolution: 128,
+    resolution: 64, // Reduced for better performance
     height: 4,
     scale: 20,
     wireframe: false,
-    material: 'standard',
+    material: 'phong', // Changed to phong for better performance
     seed: Math.random() * 1000,
     roughness: 0.7,
     metalness: 0.1,
@@ -98,29 +99,40 @@ const TerrainViewer = () => {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* 3D Visualization */}
         <div className="flex-1 bg-muted rounded-lg overflow-hidden h-[500px] md:h-[600px]">
-          <Canvas shadows>
+          <Canvas
+            shadows={false} 
+            gl={{
+              powerPreference: "high-performance",
+              antialias: false,
+              stencil: false,
+              depth: true
+            }}
+            camera={{ position: [0, 8, 12], fov: 45 }}
+            performance={{ min: 0.5 }}
+            dpr={[1, 1.5]}
+          >
             <color attach="background" args={[0x111111]} />
-            <PerspectiveCamera makeDefault position={[0, 8, 12]} fov={45} />
             <ambientLight intensity={0.4} />
             <directionalLight 
               intensity={1} 
               position={[10, 10, 5]} 
-              castShadow
-              shadow-mapSize-width={2048} 
-              shadow-mapSize-height={2048}
+              castShadow={false}
             />
-            <TerrainMesh 
-              {...terrainSettings} 
-              heightmapImage={heightmapImage}
-            />
+            <fog attach="fog" args={['#111111', 15, 30]} />
+            <Suspense fallback={null}>
+              <TerrainMesh 
+                {...terrainSettings} 
+                heightmapImage={heightmapImage}
+              />
+            </Suspense>
             <OrbitControls 
               minPolarAngle={0} 
               maxPolarAngle={Math.PI / 2.1} 
               enablePan={true} 
               enableZoom={true} 
               zoomSpeed={0.5}
+              maxDistance={25}
             />
-            <Stats />
           </Canvas>
         </div>
         
@@ -302,8 +314,13 @@ const TerrainMesh = ({
   const geometryRef = useRef<THREE.PlaneGeometry | null>(null);
   const textureRef = useRef<THREE.Texture | null>(null);
   
-  // Generate terrain heights based on simplex noise
-  const generateTerrainHeights = () => {
+  // Use memo to optimize geometry creation
+  const geometry = useMemo(() => {
+    return new THREE.PlaneGeometry(scale, scale, Math.min(resolution - 1, 64), Math.min(resolution - 1, 64));
+  }, [scale, resolution]);
+  
+  // Generate terrain heights based on simplex noise - optimized
+  const generateTerrainHeights = useCallback(() => {
     if (!geometryRef.current) return;
     
     // If we have a heightmap image, use that instead of procedural generation
@@ -312,106 +329,173 @@ const TerrainMesh = ({
     }
     
     // Simple noise-based terrain generation
-    // Replace with more complex noise functions as needed
     const positions = geometryRef.current.attributes.position;
-    const halfSize = scale / 2;
     
-    for (let i = 0; i < positions.count; i++) {
-      const x = positions.getX(i);
-      const z = positions.getZ(i);
+    // Use a more efficient approach by limiting the number of operations
+    const positionArray = positions.array as Float32Array;
+    const vertexCount = positions.count;
+    
+    // Process in smaller batches to avoid long frames
+    const batchSize = 1000;
+    let currentIndex = 0;
+    
+    const processVertexBatch = () => {
+      const endIndex = Math.min(currentIndex + batchSize, vertexCount);
       
-      // Simple noise function (replace with better noise if needed)
-      const nx = x / scale;
-      const nz = z / scale;
-      
-      // Generate height using multiple octaves of noise
-      let y = 0;
-      let amplitude = 1;
-      let frequency = 1;
-      
-      for (let o = 0; o < 4; o++) {
-        // Simple pseudo-random noise based on position and seed
-        const noiseVal = Math.sin(nx * frequency + seed) * 
-                         Math.cos(nz * frequency + seed) * 
-                         Math.sin((nx + nz) * frequency + seed * 0.7);
+      for (let i = currentIndex; i < endIndex; i++) {
+        const idx = i * 3; // position array has x,y,z values
+        const x = positionArray[idx];
+        const z = positionArray[idx + 2];
         
-        y += noiseVal * amplitude;
-        amplitude *= 0.5;
-        frequency *= 2;
+        // Simple noise function
+        const nx = x / scale;
+        const nz = z / scale;
+        
+        // Generate height using multiple octaves of noise (simplified)
+        let y = 0;
+        const octaves = Math.min(4, Math.max(1, Math.floor(8 / (resolution / 32))));
+        
+        let amplitude = 1;
+        let frequency = 1;
+        
+        for (let o = 0; o < octaves; o++) {
+          // More efficient noise calculation
+          const sx = Math.sin(nx * frequency + seed * 0.1);
+          const cz = Math.cos(nz * frequency + seed * 0.2);
+          const noiseVal = sx * cz * 0.5;
+          
+          y += noiseVal * amplitude;
+          amplitude *= 0.5;
+          frequency *= 2;
+        }
+        
+        positionArray[idx + 1] = y * height;
       }
       
-      y = y * height;
-      positions.setY(i, y);
-    }
+      currentIndex = endIndex;
+      
+      if (currentIndex < vertexCount) {
+        // Process next batch in the next frame
+        requestAnimationFrame(processVertexBatch);
+      } else {
+        // All vertices processed
+        positions.needsUpdate = true;
+        geometryRef.current?.computeVertexNormals();
+      }
+    };
     
-    positions.needsUpdate = true;
-    geometryRef.current.computeVertexNormals();
-  };
+    // Start processing
+    processVertexBatch();
+  }, [geometryRef, height, scale, seed, resolution, heightmapImage, textureRef]);
   
-  // Handle heightmap texture loading
+  // Handle heightmap texture loading - optimized
   useEffect(() => {
-    if (heightmapImage) {
-      const texture = new THREE.TextureLoader().load(heightmapImage, (loadedTexture) => {
-        if (!geometryRef.current) return;
-        
-        // Create a temporary canvas to read height data from image
+    if (!heightmapImage || !geometryRef.current) return;
+    
+    let isMounted = true;
+    
+    const texture = new THREE.TextureLoader().load(heightmapImage, (loadedTexture) => {
+      if (!isMounted || !geometryRef.current) return;
+      
+      // Process the heightmap in a more efficient way
+      try {
+        // Create a temporary canvas with smaller dimensions
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         if (!context) return;
         
         const image = loadedTexture.image;
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.drawImage(image, 0, 0);
         
+        // Limit the size of the canvas to improve performance
+        const maxSize = 256;
+        const scaleFactor = Math.min(1, maxSize / Math.max(image.width, image.height));
+        
+        canvas.width = Math.floor(image.width * scaleFactor);
+        canvas.height = Math.floor(image.height * scaleFactor);
+        
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        
+        // Get the image data
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const heightData = imageData.data;
         
         // Update geometry based on heightmap
         const positions = geometryRef.current.attributes.position;
+        const positionArray = positions.array as Float32Array;
         
-        // Calculate how to sample the heightmap based on geometry resolution
-        const stepX = canvas.width / (resolution - 1);
-        const stepZ = canvas.height / (resolution - 1);
+        // Process in smaller batches
+        const batchSize = 1000;
+        const vertexCount = positions.count;
+        let currentIndex = 0;
         
-        for (let i = 0; i < positions.count; i++) {
-          const x = positions.getX(i);
-          const z = positions.getZ(i);
+        const processHeightmapBatch = () => {
+          if (!isMounted || !geometryRef.current) return;
           
-          // Convert from world space to heightmap space
-          const halfSize = scale / 2;
-          const tx = Math.round(((x + halfSize) / scale) * (resolution - 1));
-          const tz = Math.round(((z + halfSize) / scale) * (resolution - 1));
+          const endIndex = Math.min(currentIndex + batchSize, vertexCount);
           
-          // Get pixel coordinates
-          const pixelX = Math.min(canvas.width - 1, Math.max(0, Math.floor(tx * stepX)));
-          const pixelZ = Math.min(canvas.height - 1, Math.max(0, Math.floor(tz * stepZ)));
+          for (let i = currentIndex; i < endIndex; i++) {
+            const idx = i * 3; // position array has x,y,z values
+            const x = positionArray[idx];
+            const z = positionArray[idx + 2];
+            
+            // Convert from world space to heightmap space (simplified)
+            const halfSize = scale / 2;
+            const tx = (x + halfSize) / scale;
+            const tz = (z + halfSize) / scale;
+            
+            // Get pixel coordinates (clamped to valid range)
+            const pixelX = Math.min(canvas.width - 1, Math.max(0, Math.floor(tx * canvas.width)));
+            const pixelZ = Math.min(canvas.height - 1, Math.max(0, Math.floor(tz * canvas.height)));
+            
+            // Get height from red channel (grayscale image)
+            const pixelIndex = (pixelZ * canvas.width + pixelX) * 4;
+            const heightValue = heightData[pixelIndex] / 255; // Normalize to 0-1
+            
+            // Set the height
+            positionArray[idx + 1] = heightValue * height;
+          }
           
-          // Get height from red channel (grayscale image)
-          const pixelIndex = (pixelZ * canvas.width + pixelX) * 4;
-          const heightValue = heightData[pixelIndex] / 255; // Normalize to 0-1
+          currentIndex = endIndex;
           
-          // Set the height
-          positions.setY(i, heightValue * height);
-        }
+          if (currentIndex < vertexCount) {
+            // Process next batch in the next frame
+            setTimeout(processHeightmapBatch, 0);
+          } else {
+            // All vertices processed
+            positions.needsUpdate = true;
+            geometryRef.current?.computeVertexNormals();
+          }
+        };
         
-        positions.needsUpdate = true;
-        geometryRef.current.computeVertexNormals();
-      });
-      
-      textureRef.current = texture;
-    } else {
-      // If no heightmap image, generate procedural terrain
-      generateTerrainHeights();
-    }
-  }, [heightmapImage, resolution, height, scale, seed]);
+        // Start processing
+        processHeightmapBatch();
+      } catch (error) {
+        console.error("Error processing heightmap:", error);
+        generateTerrainHeights();
+      }
+    });
+    
+    textureRef.current = texture;
+    
+    return () => {
+      isMounted = false;
+      if (textureRef.current) {
+        textureRef.current.dispose();
+      }
+    };
+  }, [heightmapImage, resolution, height, scale, generateTerrainHeights]);
   
-  // Update terrain when parameters change
+  // Update terrain when parameters change - optimized with debounce
   useEffect(() => {
-    if (!heightmapImage) {
+    if (heightmapImage || !geometryRef.current) return;
+    
+    // Use a timeout to debounce rapid changes
+    const timeoutId = setTimeout(() => {
       generateTerrainHeights();
-    }
-  }, [resolution, height, scale, seed]);
+    }, 200);
+    
+    return () => clearTimeout(timeoutId);
+  }, [resolution, height, scale, seed, generateTerrainHeights, heightmapImage]);
   
   // Rotate terrain
   useEffect(() => {
@@ -455,18 +539,20 @@ const TerrainMesh = ({
       />;
   }
   
+  // Use the memoized geometry instead of creating a new one every render
+  useEffect(() => {
+    geometryRef.current = geometry;
+  }, [geometry]);
+  
   return (
     <mesh 
       ref={meshRef} 
       rotation={[-Math.PI / 2, 0, 0]} 
-      receiveShadow 
-      castShadow
+      receiveShadow={false}
+      castShadow={false}
       position={[0, 0, 0]}
     >
-      <planeGeometry
-        ref={geometryRef}
-        args={[scale, scale, resolution - 1, resolution - 1]}
-      />
+      <primitive object={geometry} ref={geometryRef} />
       {terrainMaterial}
     </mesh>
   );
@@ -887,6 +973,16 @@ const HeightmapEditor = () => {
               variant="outline"
             >
               Reset Canvas
+            </Button>
+            <Button
+              onClick={() => {
+                const img = canvasRef.current?.toDataURL('image/png');
+                if (img) setHeightmapImage(img);
+              }}
+              variant="outline"
+              className="bg-accent/10 hover:bg-accent/20"
+            >
+              Use in 3D View
             </Button>
           </div>
         </div>
