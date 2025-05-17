@@ -209,11 +209,14 @@ const AbstractBackground = ({
       // Calculate distance from center for edge fading
       float distFromCenter = length(uv - 0.5) * 2.0; // 0 at center, ~1.0 at corners
       
-      // Create a smooth fade out effect at the edges
-      float edgeFade = smoothstep(0.8, 1.4, distFromCenter);
+      // Create an extremely soft and wide fade out effect at the edges
+      float edgeFade = smoothstep(0.4, 1.8, distFromCenter);
       
-      // Apply the fade out to the alpha channel
-      float alpha = 1.0 - edgeFade;
+      // Apply a radial gradient to further soften the edges
+      float radialGradient = 1.0 - smoothstep(0.0, 1.5, distFromCenter);
+      
+      // Apply the fade out to the alpha channel with improved smoothness
+      float alpha = pow(1.0 - edgeFade, 1.4) * radialGradient; // Enhanced falloff
       
       // Apply alpha and output final color
       gl_FragColor = vec4(finalColor, alpha);
@@ -222,13 +225,15 @@ const AbstractBackground = ({
   
   return (
     <mesh ref={meshRef} position={[0, 0, 0]}>
-      <planeGeometry args={[2.5, 2.5]} /> {/* Slightly larger to allow for fade out */}
+      <planeGeometry args={[3.0, 3.0]} /> {/* Much larger to allow for extended fade out */}
       <shaderMaterial
         ref={materialRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms.current}
         transparent={true}
+        depthWrite={false} /* Prevents z-fighting with background elements */
+        blending={THREE.AdditiveBlending} /* Enhances glow effect at edges */
       />
     </mesh>
   );

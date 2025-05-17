@@ -65,7 +65,7 @@ const Hero = () => {
       ref={containerRef}
     >
       {/* Background 3D scene with abstract visualization */}
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-background via-background/95 to-background/90">
         <ThreeScene 
           orbitControls={false}
           ambientLightIntensity={0.5}
@@ -74,7 +74,7 @@ const Hero = () => {
           effectsPreset="medium"
         >
           <AbstractBackground 
-            colorPalette={['#ff3366', '#121212', '#00ffd1']}
+            colorPalette={['#ff3366', '#101010', '#00ffd1']}
           />
         </ThreeScene>
       </div>
