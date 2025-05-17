@@ -77,6 +77,14 @@ const TerrainViewer = () => {
     }));
   };
   
+  // Check for heightmap from editor when component mounts or activates
+  useEffect(() => {
+    const storedHeightmap = window.localStorage.getItem('currentHeightmap');
+    if (storedHeightmap) {
+      setHeightmapImage(storedHeightmap);
+    }
+  }, []);
+  
   // Update settings handler
   const updateSettings = (key: string, value: any) => {
     setTerrainSettings(prev => ({
@@ -117,20 +125,74 @@ const TerrainViewer = () => {
             performance={{ min: 0.5 }}
             dpr={[1, 1.5]}
           >
-            <color attach="background" args={[0x111111]} />
-            <ambientLight intensity={0.4} />
+            {/* Atmospheric background color if sky is disabled */}
+            {!showSky && <color attach="background" args={[0x111111]} />}
+            
+            {/* Lighting that changes with time of day */}
+            <ambientLight intensity={0.2 + timeOfDay * 0.4} />
             <directionalLight 
-              intensity={1} 
-              position={[10, 10, 5]} 
+              intensity={0.6 + timeOfDay * 0.6} 
+              position={[
+                Math.sin((timeOfDay - 0.5) * Math.PI) * 10,
+                Math.cos((timeOfDay - 0.5) * Math.PI) * 10,
+                Math.sin(timeOfDay * Math.PI) * 5
+              ]} 
               castShadow={false}
+              color={new THREE.Color(
+                1.0, 
+                0.9 + timeOfDay * 0.1, 
+                0.7 + timeOfDay * 0.3
+              )}
             />
-            <fog attach="fog" args={['#111111', 15, 30]} />
+            
+            {/* Distance fog effect */}
+            <fog attach="fog" args={['#a9c7e0', 20, 35]} />
+            
             <Suspense fallback={null}>
+              {/* Main terrain mesh */}
               <TerrainMesh 
                 {...terrainSettings} 
                 heightmapImage={heightmapImage}
               />
+              
+              {/* Atmospheric sky dome */}
+              {showSky && (
+                <mesh scale={100}>
+                  <sphereGeometry args={[1, 32, 32]} />
+                  <SkyShader 
+                    sunPosition={[
+                      Math.sin((timeOfDay - 0.5) * Math.PI) * 10,
+                      Math.cos((timeOfDay - 0.5) * Math.PI) * 10,
+                      Math.sin(timeOfDay * Math.PI) * 5
+                    ]}
+                    atmosphereColor={timeOfDay > 0.7 || timeOfDay < 0.3 
+                      ? "#ff6a00" // Sunrise/sunset orange
+                      : "#1e90ff" // Daytime blue
+                    }
+                    cloudDensity={0.6}
+                    timeScale={0.2}
+                  />
+                </mesh>
+              )}
+              
+              {/* Water plane for terrain with water */}
+              {terrainSettings.material === 'shader' && (
+                <mesh 
+                  rotation={[-Math.PI / 2, 0, 0]} 
+                  position={[0, 0.05, 0]}
+                  scale={[terrainSettings.scale * 1.2, terrainSettings.scale * 1.2, 1]}
+                >
+                  <planeGeometry args={[1, 1, 32, 32]} />
+                  <WaterShader 
+                    color="#4286f4"
+                    flowSpeed={0.3}
+                    reflectivity={0.6}
+                    transparency={0.85}
+                  />
+                </mesh>
+              )}
             </Suspense>
+            
             <OrbitControls 
               minPolarAngle={0} 
               maxPolarAngle={Math.PI / 2.1} 
@@ -279,6 +341,38 @@ const TerrainViewer = () => {
                   <SelectItem value="shader">Custom Shader</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="pt-4 border-t border-muted mt-4">
+              <h4 className="font-medium mb-3">Atmosphere Settings</h4>
+              
+              <div className="flex items-center space-x-2 mb-3">
+                <input
+                  type="checkbox"
+                  id="showSky"
+                  checked={showSky}
+                  onChange={(e) => setShowSky(e.target.checked)}
+                  className="rounded text-accent focus:ring-accent"
+                />
+                <label htmlFor="showSky">Atmospheric Sky</label>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Time of Day: {timeOfDay < 0.3 ? 'Dawn' : 
+                    timeOfDay < 0.4 ? 'Morning' : 
+                    timeOfDay < 0.6 ? 'Noon' : 
+                    timeOfDay < 0.7 ? 'Afternoon' : 
+                    timeOfDay < 0.8 ? 'Sunset' : 'Dusk'}
+                </label>
+                <Slider 
+                  value={[timeOfDay]} 
+                  min={0} 
+                  max={1} 
+                  step={0.01} 
+                  onValueChange={(value) => setTimeOfDay(value[0])}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -591,6 +685,19 @@ const HeightmapEditor = () => {
   const [brushSize, setBrushSize] = useState(20);
   const [brushStrength, setBrushStrength] = useState(0.2);
   const [canvasSize, setCanvasSize] = useState({ width: 512, height: 512 });
+  
+  // Simpler method to share heightmap with the TerrainViewer
+  const updateHeightmapImageForViewer = (dataUrl: string) => {
+    // This will update the heightmapImage in the TerrainViewer component
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('currentHeightmap', dataUrl);
+      // Trigger switching to view tab
+      const viewTabElement = document.querySelector('[data-state="inactive"][data-value="view"]');
+      if (viewTabElement) {
+        (viewTabElement as HTMLElement).click();
+      }
+    }
+  };
   
   // Initialize canvas
   useEffect(() => {
@@ -1002,7 +1109,7 @@ const HeightmapEditor = () => {
             <Button
               onClick={() => {
                 const img = canvasRef.current?.toDataURL('image/png');
-                if (img) setHeightmapImage(img);
+                if (img) updateHeightmapImageForViewer(img);
               }}
               variant="outline"
               className="bg-accent/10 hover:bg-accent/20"
