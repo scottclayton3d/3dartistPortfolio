@@ -66,20 +66,30 @@ const Hero = () => {
     >
       {/* Background gradient with animated overlay */}
       <div className="absolute inset-0 -z-10">
-        {/* Base gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#070715] via-[#12121f] to-[#1a1a2e]"></div>
+        {/* Base gradient background - darker, more dramatic */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#080818] via-[#10101e] to-[#1a1a2e]"></div>
         
-        {/* Animated gradient overlay */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#ff2d92]/10 via-transparent to-[#00d1c3]/10 animate-pulse"></div>
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-[#ff2d92]/20 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#00d1c3]/20 to-transparent"></div>
+        {/* Animated gradient overlay with better contrast */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ff2d92]/5 via-[#070715]/0 to-[#00d1c3]/5"></div>
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-[#ff2d92]/10 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#00d1c3]/10 to-transparent"></div>
         </div>
         
-        {/* Glowing orbs */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-[#ff2d92]/10 blur-xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 rounded-full bg-[#00d1c3]/10 blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 right-1/3 w-24 h-24 rounded-full bg-[#a855f7]/10 blur-xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+        {/* Grid overlay for texture */}
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
+        
+        {/* Enhanced glowing orbs with better positioning and more subtle effects */}
+        <div className="absolute top-1/4 left-1/5 w-56 h-56 rounded-full bg-[#ff2d92]/5 blur-2xl"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-[#00d1c3]/5 blur-2xl"></div>
+        <div className="absolute top-2/3 left-1/3 w-48 h-48 rounded-full bg-[#a855f7]/5 blur-2xl"></div>
+        
+        {/* Dynamic animated orbs */}
+        <div className="absolute top-1/3 left-1/2 w-24 h-24 rounded-full bg-[#ff2d92]/10 blur-xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 rounded-full bg-[#00d1c3]/10 blur-xl animate-pulse" 
+          style={{ animationDelay: '1s', animationDuration: '3s' }}></div>
+        <div className="absolute top-1/2 right-1/4 w-20 h-20 rounded-full bg-[#a855f7]/10 blur-xl animate-pulse" 
+          style={{ animationDelay: '0.5s', animationDuration: '4s' }}></div>
       </div>
       
       {/* Hero content */}
@@ -87,16 +97,16 @@ const Hero = () => {
         <div className="max-w-3xl">
           <h1 
             ref={titleRef}
-            className="hero-title mb-8 text-white text-5xl md:text-6xl lg:text-7xl font-bold"
+            className="hero-title mb-8 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight"
           >
-            <div className="bg-gradient-to-r from-[#ff2d92] via-[#a855f7] to-[#00d1c3] text-transparent bg-clip-text mb-3">
+            <div className="text-white mb-3">
               Exploring Digital Art
             </div>
             <div className="text-white flex items-center">
               <span className="mr-3">Through</span>
               <span className="text-[#00d1c3] relative">
                 3D
-                <span className="absolute -inset-1 blur-sm opacity-40 bg-[#00d1c3] rounded-lg -z-10"></span>
+                <span className="absolute -inset-1 blur-md opacity-40 bg-[#00d1c3] rounded-lg -z-10"></span>
               </span>
             </div>
           </h1>
