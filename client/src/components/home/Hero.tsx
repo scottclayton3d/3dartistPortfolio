@@ -79,16 +79,16 @@ const Hero = () => {
         {/* Grid overlay for texture */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
         
-        {/* Enhanced glowing orbs with better positioning and more subtle effects */}
-        <div className="absolute top-1/4 left-1/5 w-56 h-56 rounded-full bg-[#ff2d92]/5 blur-2xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-[#00d1c3]/5 blur-2xl"></div>
-        <div className="absolute top-2/3 left-1/3 w-48 h-48 rounded-full bg-[#a855f7]/5 blur-2xl"></div>
+        {/* Sharper background glows - less blur */}
+        <div className="absolute top-1/4 left-1/5 w-56 h-56 rounded-full bg-[#ff2d92]/10 blur-lg"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-[#00d1c3]/10 blur-lg"></div>
+        <div className="absolute top-2/3 left-1/3 w-48 h-48 rounded-full bg-[#a855f7]/10 blur-lg"></div>
         
-        {/* Dynamic animated orbs */}
-        <div className="absolute top-1/3 left-1/2 w-24 h-24 rounded-full bg-[#ff2d92]/10 blur-xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 rounded-full bg-[#00d1c3]/10 blur-xl animate-pulse" 
+        {/* Dynamic animated orbs with reduced blur */}
+        <div className="absolute top-1/3 left-1/2 w-24 h-24 rounded-full bg-[#ff2d92]/20 blur-sm animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 rounded-full bg-[#00d1c3]/20 blur-sm animate-pulse" 
           style={{ animationDelay: '1s', animationDuration: '3s' }}></div>
-        <div className="absolute top-1/2 right-1/4 w-20 h-20 rounded-full bg-[#a855f7]/10 blur-xl animate-pulse" 
+        <div className="absolute top-1/2 right-1/4 w-20 h-20 rounded-full bg-[#a855f7]/20 blur-sm animate-pulse" 
           style={{ animationDelay: '0.5s', animationDuration: '4s' }}></div>
       </div>
       
