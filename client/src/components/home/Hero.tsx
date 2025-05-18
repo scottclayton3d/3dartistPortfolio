@@ -87,10 +87,10 @@ const Hero = () => {
             ref={titleRef}
             className="hero-title mb-6 text-white"
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-[#00FFD1]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-[#00FFD1] block">
               Exploring Digital Art
             </span>
-            <br /> Through 3D
+            <span className="text-white">Through 3D</span>
           </h1>
           
           <p 
