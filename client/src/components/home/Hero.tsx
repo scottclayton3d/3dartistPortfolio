@@ -64,20 +64,22 @@ const Hero = () => {
       className="relative h-screen w-full flex items-center overflow-hidden"
       ref={containerRef}
     >
-      {/* Background 3D scene with ray marching visualization */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-background via-background/95 to-background/90">
-        <ThreeScene 
-          orbitControls={false}
-          ambientLightIntensity={0.5}
-          cameraPosition={[0, 0, 5]}
-          enablePostProcessing={false} // Disable ThreeScene post-processing as RayMarchShader has its own
-          effectsPreset="medium"
-        >
-          <RayMarchShader 
-            colorPalette={['#ff3366', '#101010', '#00ffd1']}
-            preset="neon"
-          />
-        </ThreeScene>
+      {/* Background gradient with animated overlay */}
+      <div className="absolute inset-0 -z-10">
+        {/* Base gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#070715] via-[#12121f] to-[#1a1a2e]"></div>
+        
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#ff2d92]/10 via-transparent to-[#00d1c3]/10 animate-pulse"></div>
+          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-[#ff2d92]/20 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#00d1c3]/20 to-transparent"></div>
+        </div>
+        
+        {/* Glowing orbs */}
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-[#ff2d92]/10 blur-xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 rounded-full bg-[#00d1c3]/10 blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 right-1/3 w-24 h-24 rounded-full bg-[#a855f7]/10 blur-xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
       </div>
       
       {/* Hero content */}
@@ -85,13 +87,17 @@ const Hero = () => {
         <div className="max-w-3xl">
           <h1 
             ref={titleRef}
-            className="hero-title mb-6 text-white text-5xl md:text-6xl font-bold"
+            className="hero-title mb-8 text-white text-5xl md:text-6xl lg:text-7xl font-bold"
           >
-            <div className="text-[#ff3366] mb-2">
+            <div className="bg-gradient-to-r from-[#ff2d92] via-[#a855f7] to-[#00d1c3] text-transparent bg-clip-text mb-3">
               Exploring Digital Art
             </div>
-            <div className="text-white">
-              Through 3D
+            <div className="text-white flex items-center">
+              <span className="mr-3">Through</span>
+              <span className="text-[#00d1c3] relative">
+                3D
+                <span className="absolute -inset-1 blur-sm opacity-40 bg-[#00d1c3] rounded-lg -z-10"></span>
+              </span>
             </div>
           </h1>
           
@@ -104,10 +110,14 @@ const Hero = () => {
           
           <Link 
             to="/gallery" 
-            className="hero-button inline-flex items-center btn-primary group"
+            className="hero-button relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#ff2d92] to-[#a855f7] text-white rounded-md font-medium transition-all duration-300 overflow-hidden group"
           >
-            Explore Gallery
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+            <span className="relative z-10 flex items-center">
+              Explore Gallery
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+            </span>
+            <span className="absolute inset-0 bg-gradient-to-r from-[#a855f7] to-[#00d1c3] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <span className="absolute top-0 left-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-lg"></span>
           </Link>
         </div>
       </div>

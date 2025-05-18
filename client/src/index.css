@@ -4,56 +4,62 @@
 
 @layer base {
   :root {
-    --background: 240 10% 4%;
+    /* New enhanced color palette */
+    --background: 230 15% 3%;
     --foreground: 0 0% 98%;
     
-    --card: 240 10% 3.9%;
+    --card: 235 20% 5%;
     --card-foreground: 0 0% 98%;
     
-    --popover: 240 10% 3.9%;
+    --popover: 235 20% 5%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 240 5.9% 10%;
+    --primary: 235 15% 10%;
     --primary-foreground: 0 0% 98%;
     
-    --secondary: 240 3.7% 94.1%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 230 10% 94%;
+    --secondary-foreground: 235 15% 10%;
     
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 235 12% 18%;
+    --muted-foreground: 220 10% 65%;
     
-    --accent: 346 100% 60%;
+    /* Vibrant accent colors */
+    --accent: 325 100% 60%;
     --accent-foreground: 0 0% 98%;
     
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 75% 42%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --border: 235 12% 18%;
+    --input: 235 12% 18%;
+    --ring: 220 15% 70%;
     
-    --chart-1: 346 100% 60%;
-    --chart-2: 180 100% 50%;
-    --chart-3: 240 3.7% 15.9%;
-    --chart-4: 240 5.9% 10%;
-    --chart-5: 0 0% 98%;
+    /* Enhanced chart colors for data visualization */
+    --chart-1: 325 100% 60%;
+    --chart-2: 175 100% 45%;
+    --chart-3: 260 100% 65%;
+    --chart-4: 40 100% 55%;
+    --chart-5: 190 90% 50%;
     
-    --sidebar-background: 240 10% 3.9%;
+    --sidebar-background: 235 20% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 235 15% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 346 100% 60%;
+    --sidebar-accent: 325 100% 60%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.9% 83.9%;
+    --sidebar-border: 235 12% 18%;
+    --sidebar-ring: 220 15% 70%;
     
     --radius: 0.5rem;
     
-    /* Custom variables */
-    --highlight: 180 100% 50%;
-    --dark-black: 240 10% 4%;
-    --neon-pink: 346 100% 60%;
-    --cyan: 180 100% 50%;
+    /* Custom variables with enhanced colors */
+    --highlight: 175 100% 45%;
+    --dark-black: 230 15% 3%;
+    --neon-pink: 325 100% 60%;
+    --neon-purple: 260 100% 65%;
+    --cyan: 175 100% 45%;
+    --electric-blue: 190 90% 50%;
+    --soft-gold: 40 100% 55%;
     --soft-white: 0 0% 94%;
   }
 
