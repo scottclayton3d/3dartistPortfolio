@@ -85,12 +85,14 @@ const Hero = () => {
         <div className="max-w-3xl">
           <h1 
             ref={titleRef}
-            className="hero-title mb-6 text-white"
+            className="hero-title mb-6 text-white text-5xl md:text-6xl font-bold"
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-[#00FFD1] block">
+            <div className="text-[#ff3366] mb-2">
               Exploring Digital Art
-            </span>
-            <span className="text-white">Through 3D</span>
+            </div>
+            <div className="text-white">
+              Through 3D
+            </div>
           </h1>
           
           <p 
