@@ -8,6 +8,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ScrollIndicator from './components/layout/ScrollIndicator';
+import PageTransition from './components/transitions/PageTransition';
 
 // Pages
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -86,20 +87,22 @@ function App() {
       
       {/* Main content */}
       <Navbar />
-      <main className="page-content">
+      <main>
         <Suspense fallback={
           <div className="w-full h-screen flex items-center justify-center">
             <div className="loading-spinner w-12 h-12 border-4 border-accent rounded-full border-t-transparent animate-spin"></div>
           </div>
         }>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/artwork/:id" element={<ArtworkDetailPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/artwork/:id" element={<ArtworkDetailPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PageTransition>
         </Suspense>
       </main>
       <Footer />
