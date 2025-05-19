@@ -90,7 +90,7 @@ const Hero = () => {
           />
         </ThreeScene>
         
-
+        {/*}
         <Canvas
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
           camera={{ position: [0, 0, 5] }}
@@ -100,6 +100,7 @@ const Hero = () => {
             preset="moody"
           />
         </Canvas>
+        */}
 
         {/* Grid overlay for texture */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 pointer-events-none"></div>
