@@ -71,7 +71,7 @@ const Hero = () => {
         {/* Base gradient background - darker, more dramatic */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#080818] via-[#10101e] to-[#1a1a2e]"></div>
         
-        {/* Main 3D visualization with ray marching and marching cubes */}
+        {/* Main 3D visualization */}
         <ThreeScene 
           orbitControls={false}
           ambientLightIntensity={0.3}
@@ -83,18 +83,6 @@ const Hero = () => {
           <RayMarchShader 
             colorPalette={['#ff2d92', '#080818', '#00d1c3']} 
             preset="vibrant"
-          />
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 5, 5]} intensity={0.8} color="#ffffff" />
-          <MarchingCubes 
-            colorPalette={['#ff2d92', '#a855f7', '#00d1c3']}
-            position={[0, 0, 0]}
-            scale={1.8}
-          />
-          <MarchingCubes 
-            colorPalette={['#00d1c3', '#ff2d92', '#a855f7']}
-            position={[2, -1, -2]}
-            scale={1.2}
           />
         </ThreeScene>
         
