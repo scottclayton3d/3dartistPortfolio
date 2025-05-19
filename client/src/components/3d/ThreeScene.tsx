@@ -127,9 +127,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       <hemisphereLight intensity={0.4} groundColor="#121212" />
       <pointLight position={[-10, -10, -10]} intensity={0.3} />
       
-      {/* Floating Particles Background */}
-      <FloatingParticles count={300} radius={10} />
-      
       {/* Scene Content */}
       {children}
       

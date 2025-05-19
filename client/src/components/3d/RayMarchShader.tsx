@@ -122,7 +122,7 @@ const RayMarchShader = ({
   const params = {
     ...currentPreset,
     animationSpeed: 1.0,
-    cameraDistance: 3.0,
+    cameraDistance: 2.0,
     mouseProximityEffect: true,
     minMovementScale: 0.3,
     maxMovementScale: 1.0,
