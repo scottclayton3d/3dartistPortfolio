@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import ThreeScene from '@/components/3d/ThreeScene';
 import RayMarchShader from '@/components/3d/RayMarchShader';
+import FloatingParticles from '@/components/3d/FloatingParticles';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -64,32 +65,51 @@ const Hero = () => {
       className="relative h-screen w-full flex items-center overflow-hidden"
       ref={containerRef}
     >
-      {/* Background gradient with animated overlay */}
+      {/* 3D scene with ray marching visualization */}
       <div className="absolute inset-0 -z-10">
         {/* Base gradient background - darker, more dramatic */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#080818] via-[#10101e] to-[#1a1a2e]"></div>
         
-        {/* Animated gradient overlay with better contrast */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#ff2d92]/5 via-[#070715]/0 to-[#00d1c3]/5"></div>
-          <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-[#ff2d92]/10 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-[#00d1c3]/10 to-transparent"></div>
+        {/* 3D visualization */}
+        <ThreeScene 
+          orbitControls={false}
+          ambientLightIntensity={0.3}
+          cameraPosition={[0, 0, 5]}
+          enablePostProcessing={true}
+          effectsPreset="medium"
+          backgroundColor="#080818"
+        >
+          <RayMarchShader 
+            colorPalette={['#ff2d92', '#080818', '#00d1c3']} 
+            preset="vibrant"
+          />
+        </ThreeScene>
+        
+        {/* Additional ThreeScene for particles to avoid conflicts */}
+        <div className="absolute inset-0 z-1">
+          <ThreeScene 
+            orbitControls={false}
+            backgroundColor="transparent"
+            ambientLightIntensity={0.5}
+            cameraPosition={[0, 0, 5]}
+            enablePostProcessing={false}
+          >
+            <FloatingParticles
+              count={150}
+              radius={6}
+              size={0.025}
+              color="#ff2d92"
+            />
+          </ThreeScene>
         </div>
         
         {/* Grid overlay for texture */}
-        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5"></div>
+        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 pointer-events-none"></div>
         
-        {/* Sharper background glows - less blur */}
-        <div className="absolute top-1/4 left-1/5 w-56 h-56 rounded-full bg-[#ff2d92]/10 blur-lg"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-[#00d1c3]/10 blur-lg"></div>
-        <div className="absolute top-2/3 left-1/3 w-48 h-48 rounded-full bg-[#a855f7]/10 blur-lg"></div>
-        
-        {/* Dynamic animated orbs with reduced blur */}
-        <div className="absolute top-1/3 left-1/2 w-24 h-24 rounded-full bg-[#ff2d92]/20 blur-sm animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 rounded-full bg-[#00d1c3]/20 blur-sm animate-pulse" 
+        {/* Dynamic animated orbs - visible on top of 3D scene */}
+        <div className="absolute top-1/3 left-1/2 w-24 h-24 rounded-full bg-[#ff2d92]/10 blur-md animate-pulse pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 rounded-full bg-[#00d1c3]/10 blur-md animate-pulse pointer-events-none" 
           style={{ animationDelay: '1s', animationDuration: '3s' }}></div>
-        <div className="absolute top-1/2 right-1/4 w-20 h-20 rounded-full bg-[#a855f7]/20 blur-sm animate-pulse" 
-          style={{ animationDelay: '0.5s', animationDuration: '4s' }}></div>
       </div>
       
       {/* Hero content */}
