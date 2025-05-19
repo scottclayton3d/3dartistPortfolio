@@ -29,7 +29,9 @@ const PostProcessing: React.FC<PostProcessingProps> = ({
   enableVignette = true,
   enableDOF = false,
   intensity = 1,
-  preset = 'subtle'
+  preset = 'subtle',
+  bloomIntensityOverride,
+  bloomThresholdOverride
 }) => {
   const composerRef = useRef(null);
   const { animationEnabled } = usePortfolio();
