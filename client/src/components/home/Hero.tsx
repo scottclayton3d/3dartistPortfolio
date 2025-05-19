@@ -86,10 +86,10 @@ const Hero = () => {
         </ThreeScene>
         
         {/* Additional ThreeScene for particles to avoid conflicts */}
-        <div className="absolute inset-0 z-1">
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
           <ThreeScene 
             orbitControls={false}
-            backgroundColor="transparent"
+            backgroundColor="#080818"
             ambientLightIntensity={0.5}
             cameraPosition={[0, 0, 5]}
             enablePostProcessing={false}
@@ -97,8 +97,14 @@ const Hero = () => {
             <FloatingParticles
               count={150}
               radius={6}
-              size={0.025}
+              size={0.03}
               color="#ff2d92"
+            />
+            <FloatingParticles
+              count={100}
+              radius={5}
+              size={0.02}
+              color="#00d1c3"
             />
           </ThreeScene>
         </div>
