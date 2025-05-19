@@ -14,9 +14,9 @@ interface ParticleTrailsProps {
 }
 
 const ParticleTrails: React.FC<ParticleTrailsProps> = ({
-  count = 50,
-  trailLength = 20,
-  size = 0.02,
+  count = 12,
+  trailLength = 8,
+  size = 0.002,
   color = '#ff2d92',
   fadeSpeed = 0.04,
   followSpeed = 0.1,

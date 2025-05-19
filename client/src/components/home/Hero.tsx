@@ -88,22 +88,6 @@ const Hero = () => {
           />
         </ThreeScene>
 
-        {/* Additional ThreeScene for ray marching visualization */}
-        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-          <ThreeScene 
-            orbitControls={false}
-            backgroundColor="#080818"
-            ambientLightIntensity={0.5}
-            cameraPosition={[0, 0, 5]}
-            enablePostProcessing={true}
-          >
-            <RayMarchVisualizer 
-              colorPalette={['#ff2d92', '#080818', '#00d1c3']}
-              intensity={1.2}
-            />
-          </ThreeScene>
-        </div>
-
         {/* Grid overlay for texture */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 pointer-events-none"></div>
 

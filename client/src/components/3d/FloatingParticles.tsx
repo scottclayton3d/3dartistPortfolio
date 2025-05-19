@@ -14,7 +14,7 @@ interface FloatingParticlesProps {
 }
 
 const FloatingParticles: React.FC<FloatingParticlesProps> = ({
-  count = 100,
+  count = 10,
   radius = 5,
   size = 0.05,
   color = '#FF3366',
