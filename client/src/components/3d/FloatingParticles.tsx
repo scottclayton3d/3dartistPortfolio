@@ -205,20 +205,18 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
       fy += (Math.random() - 0.5) * noiseIntensity + noise;
       fz += (Math.random() - 0.5) * noiseIntensity + noise;
       
-      // Update velocity with forces
+      // Update velocity with forces (only x and y)
       velocities.current[i][0] += fx;
       velocities.current[i][1] += fy;
-      velocities.current[i][2] += fz;
       
-      // Apply damping
+      // Apply damping (only x and y)
       velocities.current[i][0] *= 0.95;
       velocities.current[i][1] *= 0.95;
-      velocities.current[i][2] *= 0.95;
       
-      // Update position
+      // Update position (keep z constant)
       const newX = currentX + velocities.current[i][0];
       const newY = currentY + velocities.current[i][1];
-      const newZ = currentZ + velocities.current[i][2];
+      const newZ = currentZ; // Keep z position constant
       
       // Boundary check
       const dist = Math.sqrt(newX * newX + newY * newY + newZ * newZ);
