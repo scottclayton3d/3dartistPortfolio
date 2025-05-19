@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { usePortfolio } from '@/lib/stores/usePortfolio';
+import { useMousePosition } from '@/hooks/useMousePosition';
 
 interface FloatingParticlesProps {
   count?: number;
@@ -17,6 +18,7 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
   color = '#FF3366'
 }) => {
   const { animationEnabled } = usePortfolio();
+  const mouse = useMousePosition();
   const particlesRef = useRef<THREE.Points>(null);
   
   // Create particle positions
@@ -57,15 +59,44 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
       
-      // Calculate unique oscillation for each particle
+      // Get current position
       const x = positions[i3];
       const y = positions[i3 + 1];
       const z = positions[i3 + 2];
       
-      // Apply subtle motion
-      positions[i3] = x + Math.sin(time * 0.2 + i * 0.1) * 0.01;
-      positions[i3 + 1] = y + Math.cos(time * 0.2 + i * 0.05) * 0.01;
-      positions[i3 + 2] = z + Math.sin(time * 0.2 + i * 0.02) * 0.01;
+      // Apply basic motion
+      const basicX = x + Math.sin(time * 0.2 + i * 0.1) * 0.01;
+      const basicY = y + Math.cos(time * 0.2 + i * 0.05) * 0.01;
+      const basicZ = z + Math.sin(time * 0.2 + i * 0.02) * 0.01;
+      
+      // Apply mouse influence if mouse position is available
+      if (mouse) {
+        // Get mouse position (normalized -1 to 1)
+        const mouseX = mouse.relativeX || 0;
+        const mouseY = mouse.relativeY || 0;
+        
+        // Calculate distance between particle and mouse pointer in world space
+        const dx = x - mouseX * radius;
+        const dy = y - mouseY * radius;
+        const distanceToMouse = Math.sqrt(dx * dx + dy * dy);
+        
+        // Particles closer to mouse move more dramatically
+        const mouseInfluence = Math.max(0, 1 - distanceToMouse / radius);
+        const mouseAmplitude = 0.03 * mouseInfluence;
+        
+        // Safe division (avoid division by zero)
+        const safeDistance = distanceToMouse === 0 ? 0.001 : distanceToMouse;
+        
+        // Add mouse-influenced motion
+        positions[i3] = basicX + (dx / safeDistance) * mouseAmplitude;
+        positions[i3 + 1] = basicY + (dy / safeDistance) * mouseAmplitude;
+        positions[i3 + 2] = basicZ + Math.sin(time + i * 0.1) * mouseInfluence * 0.02;
+      } else {
+        // Fallback to basic motion if mouse position isn't available
+        positions[i3] = basicX;
+        positions[i3 + 1] = basicY;
+        positions[i3 + 2] = basicZ;
+      }
     }
     
     particlesRef.current.geometry.attributes.position.needsUpdate = true;

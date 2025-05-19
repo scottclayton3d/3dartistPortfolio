@@ -167,17 +167,35 @@ const RayMarchShader = ({
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
       
-      // Smoothly interpolate mouse position
+      // Enhanced mouse interpolation with more responsive interaction
       const currentMouseX = materialRef.current.uniforms.uMousePosition.value.x;
       const currentMouseY = materialRef.current.uniforms.uMousePosition.value.y;
       
+      // Scale up the mouse influence for stronger effect
       const targetX = mousePosition.relativeX * 0.5 + 0.5;
       const targetY = mousePosition.relativeY * 0.5 + 0.5;
       
+      // More responsive mouse tracking (faster response)
+      const mouseSmoothness = 0.15; // Increased from default for faster response
+      
       materialRef.current.uniforms.uMousePosition.value.x += 
-        (targetX - currentMouseX) * params.mouseSmoothness;
+        (targetX - currentMouseX) * mouseSmoothness;
       materialRef.current.uniforms.uMousePosition.value.y += 
-        (targetY - currentMouseY) * params.mouseSmoothness;
+        (targetY - currentMouseY) * mouseSmoothness;
+        
+      // Modify other parameters based on mouse position for more dynamic effect
+      // Adjust movement scale based on mouse position (center = slower, edges = faster)
+      const distanceFromCenter = Math.sqrt(
+        Math.pow(mousePosition.relativeX, 2) + 
+        Math.pow(mousePosition.relativeY, 2)
+      );
+      
+      // Map distance to movement scale (more movement at edges, less in center)
+      const dynamicScale = params.minMovementScale + 
+        (params.maxMovementScale - params.minMovementScale) * 
+        Math.min(1.0, distanceFromCenter * 1.2);
+        
+      materialRef.current.uniforms.uMovementScale.value = dynamicScale;
     }
   });
   

@@ -78,10 +78,33 @@ const MarchingCubes: React.FC<MarchingCubesProps> = ({
     meshRef.current.rotation.y = time * 0.1;
     meshRef.current.rotation.z = Math.cos(time * 0.3) * 0.1;
     
-    // Apply mouse influence
-    const mouseInfluence = 0.3;
-    meshRef.current.position.x = position[0] + mousePosition.relativeX * mouseInfluence;
-    meshRef.current.position.y = position[1] + mousePosition.relativeY * mouseInfluence;
+    // Apply enhanced mouse influence with distance-based effect
+    const mouseInfluence = 1.0;
+    const targetX = position[0] + mousePosition.relativeX * mouseInfluence;
+    const targetY = position[1] + mousePosition.relativeY * mouseInfluence;
+    
+    // Create smooth follow with easing
+    meshRef.current.position.x += (targetX - meshRef.current.position.x) * 0.05;
+    meshRef.current.position.y += (targetY - meshRef.current.position.y) * 0.05;
+    
+    // Add repulsion effect when mouse is very close to the object
+    const mouseWorldX = mousePosition.relativeX * 3; // Scale to world coordinates
+    const mouseWorldY = mousePosition.relativeY * 3;
+    const distanceToMouse = Math.sqrt(
+      Math.pow(meshRef.current.position.x - mouseWorldX, 2) + 
+      Math.pow(meshRef.current.position.y - mouseWorldY, 2)
+    );
+    
+    // Apply repulsion if mouse is close
+    if (distanceToMouse < 1) {
+      const repulsionStrength = 0.05 * (1 - distanceToMouse);
+      const dirX = meshRef.current.position.x - mouseWorldX;
+      const dirY = meshRef.current.position.y - mouseWorldY;
+      const length = Math.sqrt(dirX * dirX + dirY * dirY) || 0.001;
+      
+      meshRef.current.position.x += (dirX / length) * repulsionStrength;
+      meshRef.current.position.y += (dirY / length) * repulsionStrength;
+    }
     
     // Subtle pulsing effect
     const pulse = Math.sin(time) * 0.05 + 1;
