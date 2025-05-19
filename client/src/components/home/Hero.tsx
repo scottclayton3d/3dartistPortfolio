@@ -7,6 +7,7 @@ import ThreeScene from '@/components/3d/ThreeScene';
 import RayMarchShader from '@/components/3d/RayMarchShader';
 import FloatingParticles from '@/components/3d/FloatingParticles';
 import MarchingCubes from '@/components/3d/MarchingCubes';
+import ParticleTrails from '@/components/3d/ParticleTrails';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -106,6 +107,20 @@ const Hero = () => {
               radius={5}
               size={0.02}
               color="#00d1c3"
+            />
+            <ParticleTrails 
+              count={30}
+              trailLength={25}
+              size={0.025}
+              color="#ff3366"
+              followSpeed={0.15}
+            />
+            <ParticleTrails 
+              count={20}
+              trailLength={20}
+              size={0.02}
+              color="#00ffd1"
+              followSpeed={0.12}
             />
           </ThreeScene>
         </div>
