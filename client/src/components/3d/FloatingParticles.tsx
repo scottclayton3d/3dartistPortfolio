@@ -1,100 +1,78 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { usePortfolio } from '@/lib/stores/usePortfolio';
 
-interface MatrixEffectProps {
-  color?: string;
-  fontSize?: number;
-  density?: number;
-  speed?: number;
-}
-
-const MatrixEffect: React.FC<MatrixEffectProps> = ({
-  color = '#00ff66',
-  fontSize = 16,
-  density = 0.1,
-  speed = 1
-}) => {
+const MatrixRain = () => {
   const { animationEnabled } = usePortfolio();
-  const pointsRef = useRef<THREE.Points>(null);
-  const charsRef = useRef<string[]>([]);
-  const fallSpeedsRef = useRef<number[]>([]);
-
-  // Generate characters for matrix effect
-  useEffect(() => {
-    // Kanji and other characters
-    const chars = Array.from({ length: 100 }, (_, i) => 
-      String.fromCharCode(0x30A0 + Math.random() * 96)
-    );
-    charsRef.current = chars;
-
-    // Initialize fall speeds
-    fallSpeedsRef.current = Array.from({ length: chars.length }, () => 
-      (Math.random() * 0.5 + 0.5) * speed
-    );
-  }, [speed]);
+  const meshRef = useRef<THREE.Points>(null);
+  const particleCount = 5000;
 
   // Create particles
-  const { positions, colors } = useMemo(() => {
-    const positions = new Float32Array(charsRef.current.length * 3);
-    const colors = new Float32Array(charsRef.current.length * 3);
-    const baseColor = new THREE.Color(color);
+  const positions = new Float32Array(particleCount * 3);
+  const colors = new Float32Array(particleCount * 3);
+  const sizes = new Float32Array(particleCount);
 
-    for (let i = 0; i < charsRef.current.length; i++) {
-      // Random position in a column formation
-      positions[i * 3] = (Math.random() - 0.5) * 20;     // x
-      positions[i * 3 + 1] = Math.random() * 20 - 10;    // y
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 20; // z
+  for (let i = 0; i < particleCount; i++) {
+    // Spread particles in a column formation
+    positions[i * 3] = (Math.random() - 0.5) * 30;     // x
+    positions[i * 3 + 1] = Math.random() * 50 - 25;    // y
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 30; // z
 
-      // Slightly varied colors
-      colors[i * 3] = baseColor.r;
-      colors[i * 3 + 1] = baseColor.g;
-      colors[i * 3 + 2] = baseColor.b;
-    }
+    // Bright green color with slight variation
+    colors[i * 3] = 0;
+    colors[i * 3 + 1] = 0.8 + Math.random() * 0.2;
+    colors[i * 3 + 2] = 0;
 
-    return { positions, colors };
-  }, [color]);
+    // Varied sizes for depth effect
+    sizes[i] = Math.random() * 0.5 + 0.1;
+  }
 
-  // Animation loop
   useFrame((_, delta) => {
-    if (!pointsRef.current || !animationEnabled) return;
+    if (!meshRef.current || !animationEnabled) return;
 
-    const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
+    const positions = meshRef.current.geometry.attributes.position.array as Float32Array;
+    const fallSpeed = 15; // Increased fall speed
 
     for (let i = 0; i < positions.length; i += 3) {
       // Update y position (falling effect)
-      positions[i + 1] -= fallSpeedsRef.current[i / 3] * delta * 5;
+      positions[i + 1] -= (Math.random() * 0.5 + 0.5) * fallSpeed * delta;
 
       // Reset when particle reaches bottom
-      if (positions[i + 1] < -10) {
-        positions[i + 1] = 10;
-        positions[i] = (Math.random() - 0.5) * 20;     // Randomize x
-        positions[i + 2] = (Math.random() - 0.5) * 20; // Randomize z
+      if (positions[i + 1] < -25) {
+        positions[i + 1] = 25;
+        positions[i] = (Math.random() - 0.5) * 30;     // Randomize x
+        positions[i + 2] = (Math.random() - 0.5) * 30; // Randomize z
       }
     }
 
-    pointsRef.current.geometry.attributes.position.needsUpdate = true;
+    meshRef.current.geometry.attributes.position.needsUpdate = true;
   });
 
   return (
-    <points ref={pointsRef}>
+    <points ref={meshRef}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={positions.length / 3}
+          count={particleCount}
           array={positions}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-color"
-          count={colors.length / 3}
+          count={particleCount}
           array={colors}
           itemSize={3}
         />
+        <bufferAttribute
+          attach="attributes-size"
+          count={particleCount}
+          array={sizes}
+          itemSize={1}
+        />
       </bufferGeometry>
       <pointsMaterial
-        size={fontSize * 0.01}
+        size={0.2}
         vertexColors
         transparent
         opacity={0.8}
@@ -105,4 +83,4 @@ const MatrixEffect: React.FC<MatrixEffectProps> = ({
   );
 };
 
-export default MatrixEffect;
+export default MatrixRain;

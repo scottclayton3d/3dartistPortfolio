@@ -178,8 +178,9 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       {/* Scene Content */}
       {children}
       
-      {/* Matrix Effect */}
-      <MatrixEffect color="#00ff66" fontSize={16} density={0.1} speed={1} />
+      {/* Background color adjusted for better Matrix effect visibility */}
+      <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={['#000000', 5, 30]} />
 
       {/* Controls */}
       {orbitControls && (
