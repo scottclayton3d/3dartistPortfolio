@@ -9,6 +9,7 @@ import RayMarchVisualizer from '@/components/3d/RayMarchVisualizer';
 import MarchingCubes from '@/components/3d/MarchingCubes';
 import ParticleTrails from '@/components/3d/ParticleTrails';
 import RaymarchEffect from '@/components/3d/RaymarchEffect';
+import { Canvas } from '@react-three/fiber';
 
 // Register GSAP plugins
 gsap.registerPlugin(SplitText);
@@ -72,8 +73,8 @@ const Hero = () => {
       <div className="absolute inset-0 -z-10">
         {/* Base gradient background - darker, more dramatic */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#080818] via-[#10101e] to-[#1a1a2e]"></div>
-
-        {/* Main 3D visualization */}
+        
+        {/*
         <ThreeScene 
           orbitControls={false}
           ambientLightIntensity={0.3}
@@ -87,6 +88,17 @@ const Hero = () => {
             noiseIntensity={0.8}
           />
         </ThreeScene>
+        */}
+
+        <Canvas
+          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+          camera={{ position: [0, 0, 5] }}
+        >
+          <RayMarchShader 
+            colorPalette={['#ff3366', '#101010', '#00ffd1']}
+            preset="neon"
+          />
+        </Canvas>
 
         {/* Grid overlay for texture */}
         <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 pointer-events-none"></div>
@@ -135,6 +147,9 @@ const Hero = () => {
             <span className="absolute top-0 left-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-lg"></span>
           </Link>
         </div>
+      </div>
+      <div className="relative z-10 flex items-center justify-center h-full absolute inset-0">
+        <h1 className="text-5xl font-bold text-white">Welcome</h1>
       </div>
 
       {/* Bottom gradient overlay */}
