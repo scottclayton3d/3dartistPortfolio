@@ -2,7 +2,6 @@ const onecolor = one.color;
 
 function hex2vector(cssHex) {
     const pc = onecolor(cssHex);
-
     return vec3.fromValues(
         pc.red(),
         pc.green(),
@@ -19,17 +18,15 @@ const bufferH = bufferCH * charH;
 const textureW = 512;
 const textureH = 256;
 
-const consolePad = 8; // in texels
+const consolePad = 8;
 const consoleW = bufferW + consolePad * 2;
 const consoleH = bufferH + consolePad * 2;
 
 const bufferCanvas = document.createElement('canvas');
 bufferCanvas.width = bufferW;
 bufferCanvas.height = bufferH;
-// document.body.appendChild(bufferCanvas);
 
 const bufferContext = bufferCanvas.getContext('2d');
-
 bufferContext.fillStyle = '#000';
 bufferContext.fillRect(0, 0, bufferW, bufferH);
 
@@ -40,23 +37,18 @@ function charRange(start, end) {
 }
 
 const characterSet = ([]
-  .concat(charRange(0x30, 0x3a)) // ASCII digits
-  .concat(charRange(0x40, 0x5b)) // ASCII uppercase and @
-  .concat(charRange(0x30a0, 0x30ff)) // kanji
+  .concat(charRange(0x30, 0x3a))
+  .concat(charRange(0x40, 0x5b))
+  .concat(charRange(0x30a0, 0x30ff))
 );
 
-// const bannerSet = [
-//   '❤', '☠', '☣', '☻', '⚇', '⚿', '⛯'
-// ];
-
 const bannerImgSet = [
-  new Image(),
   new Image(),
   new Image(),
   new Image()
 ];
 
-bannerImgSet[0].src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" x="0px" y="0px"><g><path d="M26,44H38a7.00818,7.00818,0,0,0,7-7V26H19V37A7.00818,7.00818,0,0,0,26,44Zm8.419-9.81348,7-5a.99968.99968,0,1,1,1.1621,1.627l-7,5a.99968.99968,0,1,1-1.1621-1.627ZM21.186,29.419a.99814.99814,0,0,1,1.395-.23243l7,5a.99968.99968,0,1,1-1.1621,1.627l-7-5A.9994.9994,0,0,1,21.186,29.419Z"/><path d="M13,53v3h6V50H16A3.00328,3.00328,0,0,0,13,53Z"/><rect x="23" y="10" width="2" height="14"/><path d="M45,24V9A5,5,0,0,0,35,9V24h2V9a.99974.99974,0,0,1,1-1h4a.99974.99974,0,0,1,1,1V24Z"/><path d="M29,24V9A5,5,0,0,0,19,9V24h2V9a.99974.99974,0,0,1,1-1h4a.99974.99974,0,0,1,1,1V24Z"/><rect x="39" y="10" width="2" height="14"/><rect x="13" y="58" width="6" height="2"/><rect x="45" y="58" width="6" height="2"/><path d="M40,46H37v5a.99974.99974,0,0,1-1,1H28a.99974.99974,0,0,1-1-1V46H24a3.00328,3.00328,0,0,0-3,3V60h2V57a.99974.99974,0,0,1,1-1H40a.99974.99974,0,0,1,1,1v3h2V49A3.00328,3.00328,0,0,0,40,46Z"/><rect x="33" y="58" width="6" height="2"/><path d="M48,50H45v6h6V53A3.00328,3.00328,0,0,0,48,50Z"/><rect x="29" y="46" width="2" height="4"/><rect x="33" y="46" width="2" height="4"/><rect x="25" y="58" width="6" height="2"/></g></svg>');
+bannerImgSet[0].src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" x="0px" y="0px"><g><path d="M26,44H38a7.00818,7.00818,0,0,0,7-7V26H19V37A7.00818,7.00818,0,0,0,26,44Zm8.419-9.81348l7-5a.99968.99968,0,1,1,1.1621,1.627l-7,5a.99968.99968,0,1,1-1.1621-1.627ZM21.186,29.419a.99814.99814,0,0,1,1.395-.23243l7,5a.99968.99968,0,1,1-1.1621,1.627l-7-5A.9994.9994,0,0,1,21.186,29.419Z"/><path d="M13,53v3h6V50H16A3.00328,3.00328,0,0,0,13,53Z"/><rect x="23" y="10" width="2" height="14"/><path d="M45,24V9A5,5,0,0,0,35,9V24h2V9a.99974.99974,0,0,1,1-1h4a.99974.99974,0,0,1,1,1V24Z"/><path d="M29,24V9A5,5,0,0,0,19,9V24h2V9a.99974.99974,0,0,1,1-1h4a.99974.99974,0,0,1,1,1V24Z"/><rect x="39" y="10" width="2" height="14"/><rect x="13" y="58" width="6" height="2"/><rect x="45" y="58" width="6" height="2"/><path d="M40,46H37v5a.99974.99974,0,0,1-1,1H28a.99974.99974,0,0,1-1-1V46H24a3.00328,3.00328,0,0,0-3,3V60h2V57a.99974.99974,0,0,1,1-1H40a.99974.99974,0,0,1,1,1v3h2V49A3.00328,3.00328,0,0,0,40,46Z"/><rect x="33" y="58" width="6" height="2"/><path d="M48,50H45v6h6V53A3.00328,3.00328,0,0,0,48,50Z"/><rect x="29" y="46" width="2" height="4"/><rect x="33" y="46" width="2" height="4"/><rect x="25" y="58" width="6" height="2"/></g></svg>');
 
 bannerImgSet[1].src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" x="0px" y="0px"><path d="M20.67,28.71c6.92,0,7.67-4.23,7.67-6a7.67,7.67,0,0,0-15.33,0C13,24.48,13.75,28.71,20.67,28.71Zm0-9.71a3.67,3.67,0,0,1,3.67,3.67c0,.77,0,2-3.67,2S17,23.43,17,22.67A3.67,3.67,0,0,1,20.67,19Z"/><path d="M42.67,28.71c6.92,0,7.67-4.23,7.67-6a7.67,7.67,0,1,0-15.33,0C35,24.48,35.75,28.71,42.67,28.71Zm0-9.71a3.67,3.67,0,0,1,3.67,3.67c0,.77,0,2-3.67,2S39,23.43,39,22.67A3.67,3.67,0,0,1,42.67,19Z"/><path d="M25.14,34.5c0,2.49,4,3.21,6.5,3.21s6.5-.73,6.5-3.21-4-4.5-6.5-4.5S25.14,32,25.14,34.5Z"/><path d="M42,2H22A16,16,0,0,0,6,18V47a9,9,0,0,0,7.2,8.82A9,9,0,0,0,22,63H42a9,9,0,0,0,8.8-7.18A9,9,0,0,0,58,47V18A16,16,0,0,0,42,2ZM10,18A12,12,0,0,1,22,6H42A12,12,0,0,1,54,18V37.5A1.5,1.5,0,0,1,52.5,39,5.52,5.52,0,0,0,47,44.5V47H44V45a2,2,0,0,0-4,0v2H34V45a2,2,0,0,0-4,0v2H24V45a2,2,0,0,0-4,0v2H17V44.5A5.51,5.51,0,0,0,11.5,39a1.47,1.47,0,0,1-1.07-.46,1.45,1.45,0,0,1-.43-1V18Zm0,29V42.77a5.47,5.47,0,0,0,1.5.23A1.5,1.5,0,0,1,13,44.5v7.08A5,5,0,0,1,10,47Zm36.94,7.72A5,5,0,0,1,42,59H22a5,5,0,0,1-5-4.37A3.51,3.51,0,0,1,17,54V51h3v2a2,2,0,0,0,4,0V51h6v2a2,2,0,0,0,4,0V51h6v2a2,2,0,0,0,4,0V51h3v3A3.85,3.85,0,0,1,46.94,54.72ZM51,51.58V44.5a1.47,1.47,0,0,1,.46-1.07,1.45,1.45,0,0,1,1-.43,5.47,5.47,0,0,0,1.5-.21V47A5,5,0,0,1,51,51.58Z"/></svg>');
 
@@ -64,8 +56,6 @@ bannerImgSet[2].src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmln
 
 bannerImgSet[3].src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 55" x="0px" y="0px"><circle cx="22" cy="22" r="15.25" transform="translate(-9.11 22) rotate(-45)" style="" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="3px"/><line x1="18.41" y1="14.99" x2="19.9" y2="18.82" style="" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="3px"/><line x1="25.92" y1="14.99" x2="24.44" y2="18.82" style="" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="3px"/><line x1="16.29" y1="18.84" x2="27.71" y2="18.84" style="" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="3px"/><line x1="16.29" y1="24.41" x2="27.71" y2="24.41" style="" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="3px"/><line x1="22" y1="18.84" x2="22" y2="29.01" style="" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="3px"/></svg>');
 
-// pseudo-random
-// credit: https://gist.github.com/blixt/f17b47c62508be59987b
 const SEED_OFFSET = new Date().getTime();
 
 function randomize(seed) {
@@ -78,30 +68,24 @@ function getRandomizedFraction(seed) {
     return (seed - 1) / 2147483646;
 }
 
-// main character trail state
 function createTrail() {
   const cx = Math.floor(Math.random() * bufferCW);
   const cy = 0;
   const cvy = 5 + Math.random() * 15;
-
   return [ cx, cy, cvy ];
 }
 
-const trails = Array.apply(null, new Array(30)).map((_, index) => {
-  return createTrail();
-});
+const trails = Array.apply(null, new Array(30)).map(() => createTrail());
 
 function updateWorld(delta) {
   trails.forEach((trail, index) => {
     trail[1] += trail[2] * delta;
-
     if (trail[1] > bufferCH) {
       trails[index] = createTrail();
     }
   });
 }
 
-// "warm up" the state by simulating the world for a bit
 Array.apply(null, new Array(100)).forEach(() => {
   updateWorld(0.1);
 });
@@ -111,42 +95,33 @@ let bannerCountdown = 8.0;
 let bannerChoice = 0;
 
 function renderWorld(delta) {
-  // fade screen every few frames
-  // (not every frame, for long trails without rounding artifacts)
   fadeCountdown -= delta;
 
   if (fadeCountdown < 0) {
     bufferContext.fillStyle = 'rgba(0, 0, 0, 0.5)';  
     bufferContext.fillRect(0, 0, bufferW, bufferH);
-
     fadeCountdown += 0.2;
   }
 
-  // redraw
   bufferContext.textAlign = 'center';
   bufferContext.font = '12px "Inconsolata"';
 
   trails.forEach((trail, index) => {
     const k = index / trails.length;
     const charY = Math.floor(trail[1]);
-
-    // randomize based on character position
     const charSeed = index + (trail[0] + charY * bufferCW) * 50;
     const outSeed = randomize(charSeed * 1500 + SEED_OFFSET);
-
     const char = characterSet[Math.floor(getRandomizedFraction(outSeed) * characterSet.length)];
 
     bufferContext.fillStyle = `hsl(${180 + k * 120}, 100%, 60%)`;
     bufferContext.fillText(
       char,
-      (trail[0] + 0.5) * charW, // center inside character box
+      (trail[0] + 0.5) * charW,
       charY * charH + charH,
-      charW // restrict width, but allow a tiny bit of spillover
+      charW
     );
   }); 
 
-  // fade screen every few frames
-  // (not every frame, for long trails without rounding artifacts)
   bannerCountdown -= delta;
 
   if (bannerCountdown < 1.5) {
@@ -159,17 +134,6 @@ function renderWorld(delta) {
 
     const bannerImg = bannerImgSet[bannerChoice];
     bufferContext.drawImage(bannerImg, 0, 10, bufferW, bufferH + 40);
-
-    // bufferContext.fillStyle = `hsla(${100 + Math.random() * 220}, 100%, 10%, 1)`;
-    // bufferContext.font = '250px sans-serif';
-
-    // bufferContext.save();
-    // bufferContext.scale(2, 1);
-    // bufferContext.fillText(
-    //   bannerSet[Math.floor(Math.random() * bannerSet.length)],
-    //   240 / 2, 200
-    // );
-    // bufferContext.restore();
   }
 
   if (bannerCountdown < 0) {
@@ -177,7 +141,6 @@ function renderWorld(delta) {
   }
 }
 
-// init WebGL
 const regl = createREGL({
     canvas: document.body.querySelector('canvas'),
     attributes: { antialias: true, alpha: false, preserveDrawingBuffer: true }
@@ -195,14 +158,10 @@ const termBgColor = hex2vector('#002a2a');
 const quadCommand = regl({
     vert: `
         precision mediump float;
-
         attribute vec3 position;
-
         varying vec2 uvPosition;
-
         void main() {
             uvPosition = position.xy * vec2(0.5, -0.5) + vec2(0.5);
-
             gl_Position = vec4(
                 vec2(-1.0, 1.0) + (position.xy - vec2(-1.0, 1.0)) * 1.0,
                 0.0,
@@ -213,29 +172,16 @@ const quadCommand = regl({
 
     frag: `
         precision mediump float;
-
         varying vec2 uvPosition;
         uniform sampler2D sprite;
         uniform float time;
         uniform vec3 bgColor;
         uniform vec3 fgColor;
 
-        #define textureW ${textureW + '.0'}
-        #define textureH ${textureH + '.0'}
-        #define consoleW ${consoleW + '.0'}
-        #define consoleH ${consoleH + '.0'}
-        #define consolePadUVW ${consolePad / consoleW}
-        #define consolePadUVH ${consolePad / consoleH}
-        #define charUVW ${charW / consoleW}
-        #define charUVH ${charH / consoleH}
-
         void main() {
-            // @todo use uniform
-            vec2 consoleWH = vec2(consoleW, consoleH);
-
-            // @todo use uniforms
+            vec2 consoleWH = vec2(${consoleW}.0, ${consoleH}.0);
             float glitchLine = mod(0.8 + time * 0.07, 1.0);
-            float glitchFlutter = mod(time * 40.0, 1.0); // timed to be slightly out of sync from main frame rate
+            float glitchFlutter = mod(time * 40.0, 1.0);
             float glitchAmount = 0.06 + glitchFlutter * 0.01;
             float glitchDistance = 0.04 + glitchFlutter * 0.15;
 
@@ -247,29 +193,26 @@ const quadCommand = regl({
 
             if (fromEdge.x > 0.0 && fromEdge.y > 0.0) {
                 vec2 fromEdgePixel = min(0.2 * consoleWH * fromEdge, vec2(1.0, 1.0));
-
-                // simulate 2x virtual pixel size, for crisp display on low-res
                 vec2 inTexel = mod(distortedUVPosition * consoleWH * 0.5, vec2(1.0));
 
-                float distToGlitch = glitchLine - (distortedUVPosition.y - inTexel.y / consoleH);
+                float distToGlitch = glitchLine - (distortedUVPosition.y - inTexel.y / ${consoleH}.0);
                 float glitchOffsetLinear = step(0.0, distToGlitch) * max(0.0, glitchDistance - distToGlitch) / glitchDistance;
                 float glitchOffset = glitchOffsetLinear * glitchOffsetLinear;
 
                 vec2 inTexelOffset = inTexel - 0.5;
                 float scanlineAmount = inTexelOffset.y * inTexelOffset.y / 0.25;
-                float intensity = 8.0 - scanlineAmount * 5.0 + glitchOffset * 2.0; // ray intensity is over-amped by default
-                vec2 uvAdjustment = inTexelOffset * vec2(0.0, .5 / consoleH); // remove vertical texel interpolation
+                float intensity = 8.0 - scanlineAmount * 5.0 + glitchOffset * 2.0;
+                vec2 uvAdjustment = inTexelOffset * vec2(0.0, .5 / ${consoleH}.0);
 
                 distortedUVPosition.x -= glitchOffset * glitchAmount + 0.011 * (glitchFlutter * glitchFlutter * glitchFlutter);
 
                 vec4 sourcePixel = texture2D(
                     sprite,
-                    (distortedUVPosition - uvAdjustment) * consoleWH / vec2(textureW, textureH)
+                    (distortedUVPosition - uvAdjustment) * consoleWH / vec2(${textureW}.0, ${textureH}.0)
                 );
 
                 vec3 pixelRGB = sourcePixel.rgb * sourcePixel.a;
 
-                // multiply by source alpha as well
                 float screenFade = 1.0 - dot(center, center) * 1.8;
                 float edgeFade = fromEdgePixel.x * fromEdgePixel.y;
                 gl_FragColor = vec4(edgeFade * screenFade * mix(
@@ -294,7 +237,6 @@ const quadCommand = regl({
 
     uniforms: {
         time: regl.context('time'),
-        camera: regl.prop('camera'),
         sprite: spriteTexture,
         bgColor: regl.prop('bgColor'),
         fgColor: regl.prop('fgColor')
@@ -321,13 +263,11 @@ regl.clear({
     color: [ 0, 0, 0, 1 ]
 });
 
-// main loop
 let currentTime = performance.now();
 
 function rafBody() {
-  // measure time
   const newTime = performance.now();
-  const delta = Math.min(0.05, (newTime - currentTime) / 1000); // apply limiter to avoid frame skips
+  const delta = Math.min(0.05, (newTime - currentTime) / 1000);
   currentTime = newTime;
 
   updateWorld(delta);
@@ -343,6 +283,4 @@ function rafBody() {
   requestAnimationFrame(rafBody);
 }
 
-// kickstart the loop
 rafBody();
-
