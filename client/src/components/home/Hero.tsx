@@ -90,27 +90,19 @@ const Hero = () => {
         {/* Additional ThreeScene for particles to avoid conflicts */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
           <ThreeScene 
-            orbitControls={false}
+            orbitControls={true}
             backgroundColor="#080818"
             ambientLightIntensity={0.5}
             cameraPosition={[0, 0, 5]}
             enablePostProcessing={false}
           >
             <FloatingParticles
-              count={120}
-              radius={6}
-              size={0.04}
+              count={25}
+              radius={1}
+              size={0.0001}
               color="#ff2d92"
-              trailLength={12}
-              enableTrails={true}
-            />
-            <FloatingParticles
-              count={80}
-              radius={5}
-              size={0.03}
-              color="#00d1c3"
-              trailLength={10}
-              enableTrails={true}
+              trailLength={6}
+              enableTrails={false}
             />
           </ThreeScene>
         </div>

@@ -80,7 +80,7 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
           colors[i3 + 2] = particleColor.b;
           
           // Size decreases along the trail
-          sizes[index] = size * (1 - 0.7 * (j / trailLength));
+          sizes[index] = size * (0.0007 * (j / trailLength));
           
           // Store the initial position in the trails array
           if (particleTrails.current[i]) {
