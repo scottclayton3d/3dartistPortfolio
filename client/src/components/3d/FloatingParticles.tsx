@@ -24,19 +24,21 @@ interface FloatingParticlesProps {
 
 const FloatingParticles: React.FC<FloatingParticlesProps> = ({
   count = 50,
-  radius = 2,
-  size = 0.004,
+  radius = 4,
+  size = 0.02,
   baseColor = '#FF3366',
   trailLength = 12,
   enableTrails = true,
-  interactionRadius = 0.5,
-  repulsionStrength = 0.08,
-  attractionStrength = 0.02,
+  interactionRadius = 1,
+  repulsionStrength = 0.12,
+  attractionStrength = 0.04,
   colorVariation = 0.3,
   pulseFrequency = 0.5,
   pulseAmplitude = 0.2,
   swarmBehavior = true,
-  noiseIntensity = 0.02
+  noiseIntensity = 0.04,
+  minParticleSize = 0.015,
+  maxParticleSize = 0.04
 }) => {
   const { animationEnabled } = usePortfolio();
   const mouse = useMousePosition();
@@ -79,14 +81,13 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
     const opacities = new Float32Array(totalPoints);
     
     for (let i = 0; i < count; i++) {
-      // Distribute particles in a sphere using spherical coordinates
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const r = radius * Math.cbrt(Math.random());
+      // Distribute particles in a circle for 2D simulation
+      const angle = Math.random() * Math.PI * 2;
+      const r = radius * Math.sqrt(Math.random()); // Square root for uniform distribution in 2D
       
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
+      const x = r * Math.cos(angle);
+      const y = r * Math.sin(angle);
+      const z = -10; // Fixed z position for 2D effect
       
       if (enableTrails) {
         for (let j = 0; j < trailLength; j++) {
@@ -206,17 +207,33 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
       fz += (Math.random() - 0.5) * noiseIntensity + noise;
       
       // Update velocity with forces (only x and y)
-      velocities.current[i][0] += fx;
-      velocities.current[i][1] += fy;
+      velocities.current[i][0] += fx * 1.2;
+      velocities.current[i][1] += fy * 1.2;
       
       // Apply damping (only x and y)
-      velocities.current[i][0] *= 0.95;
-      velocities.current[i][1] *= 0.95;
+      velocities.current[i][0] *= 0.92;
+      velocities.current[i][1] *= 0.92;
       
       // Update position (keep z constant)
       const newX = currentX + velocities.current[i][0];
       const newY = currentY + velocities.current[i][1];
-      const newZ = currentZ; // Keep z position constant
+      const newZ = -10; // Fixed z position
+      
+      // Calculate particle size based on velocity and proximity to mouse
+      const speed = Math.sqrt(
+        velocities.current[i][0] * velocities.current[i][0] +
+        velocities.current[i][1] * velocities.current[i][1]
+      );
+      const mouseProximityFactor = Math.max(0, 1 - distToMouse / interactionRadius);
+      const dynamicSize = minParticleSize + 
+        (maxParticleSize - minParticleSize) * 
+        (speed * 2 + mouseProximityFactor);
+      
+      // Update particle size
+      if (!enableTrails) {
+        particlesRef.current.geometry.attributes.size.array[i] = dynamicSize;
+        particlesRef.current.geometry.attributes.size.needsUpdate = true;
+      }
       
       // Boundary check
       const dist = Math.sqrt(newX * newX + newY * newY + newZ * newZ);
