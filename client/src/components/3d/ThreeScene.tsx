@@ -3,7 +3,6 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { usePortfolio } from '@/lib/stores/usePortfolio';
-import FloatingParticles from './FloatingParticles';
 import PostProcessing from './PostProcessing';
 
 interface ThreeSceneProps {
@@ -19,13 +18,13 @@ interface ThreeSceneProps {
 // Scene setup component to manage effects that need access to the scene
 const SceneSetup = ({ backgroundColor = '#121212' }: { backgroundColor?: string }) => {
   const { scene } = useThree();
-  
+
   useEffect(() => {
     if (backgroundColor) {
       scene.background = new THREE.Color(backgroundColor);
     }
   }, [backgroundColor, scene]);
-  
+
   return null;
 };
 
@@ -33,18 +32,18 @@ const SceneSetup = ({ backgroundColor = '#121212' }: { backgroundColor?: string 
 const AnimatedCamera = ({ position = [0, 0, 5] }: { position?: [number, number, number] }) => {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const { animationEnabled } = usePortfolio();
-  
+
   useFrame(({ clock }) => {
     if (!cameraRef.current || !animationEnabled) return;
-    
+
     // Add subtle floating movement to camera
     const t = clock.getElapsedTime();
     const camera = cameraRef.current;
-    
+
     camera.position.x = position[0] + Math.sin(t * 0.2) * 0.2;
     camera.position.y = position[1] + Math.cos(t * 0.1) * 0.1;
   });
-  
+
   return (
     <PerspectiveCamera 
       ref={cameraRef} 
@@ -53,6 +52,55 @@ const AnimatedCamera = ({ position = [0, 0, 5] }: { position?: [number, number, 
       fov={50}
     />
   );
+};
+
+// MatrixEffect Component
+const MatrixEffect = ({ color = "#00ff00", fontSize = 16, density = 0.1, speed = 1 }) => {
+  const { gl, scene, camera } = useThree();
+  const [characters, setCharacters] = useState("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+  const [drops, setDrops] = useState<number[]>([]);
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const context = canvas.getContext('2d');
+
+    if (!context) return;
+
+    const init = () => {
+      const columns = Math.floor(canvas.width / fontSize);
+      setDrops(Array(columns).fill(0));
+    };
+
+    const animate = () => {
+      if (!context) return;
+
+      context.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      context.fillStyle = color;
+      context.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = characters[Math.floor(Math.random() * characters.length)];
+        context.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    };
+
+    init();
+    gl.setAnimationLoop(animate);
+
+    return () => {
+      gl.setAnimationLoop(null);
+    };
+  }, [color, fontSize, density, speed, gl, scene, camera, characters, drops]);
+
+  return null;
 };
 
 const ThreeScene: React.FC<ThreeSceneProps> = ({
@@ -65,7 +113,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
   effectsPreset = 'subtle'
 }) => {
   const [isGLAvailable, setIsGLAvailable] = useState(true);
-  
+
   // Check if WebGL is available
   useEffect(() => {
     try {
@@ -79,7 +127,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       setIsGLAvailable(false);
     }
   }, []);
-  
+
   // Fallback if WebGL is not available
   if (!isGLAvailable) {
     return (
@@ -95,7 +143,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       </div>
     );
   }
-  
+
   return (
     <Canvas
       gl={{ 
@@ -111,10 +159,10 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     >
       {/* Camera */}
       <AnimatedCamera position={cameraPosition} />
-      
+
       {/* Scene Setup */}
       <SceneSetup backgroundColor={backgroundColor} />
-      
+
       {/* Lighting Setup */}
       <ambientLight intensity={ambientLightIntensity} />
       <directionalLight 
@@ -126,10 +174,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
       />
       <hemisphereLight intensity={0.4} groundColor="#121212" />
       <pointLight position={[-10, -10, -10]} intensity={0.3} />
-      
+
       {/* Scene Content */}
       {children}
       
+      {/* Matrix Effect */}
+      <MatrixEffect color="#00ff66" fontSize={16} density={0.1} speed={1} />
+
       {/* Controls */}
       {orbitControls && (
         <OrbitControls 
@@ -142,7 +193,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
           enableDamping
         />
       )}
-      
+
       {/* Post-processing effects */}
       {enablePostProcessing && (
         <PostProcessing 
