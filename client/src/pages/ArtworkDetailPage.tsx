@@ -117,13 +117,6 @@ const ArtworkDetailPage = () => {
                 </div>
               ) : (
                 <div className="rounded-lg overflow-hidden h-[500px] bg-primary">
-                  <ThreeScene
-                    orbitControls={false}
-                    ambientLightIntensity={0.5}
-                    cameraPosition={[0, 0, 5]}
-                  >
-                    <FloatingParticles count={200} radius={5} />
-                  </ThreeScene>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <img 
                       src={artwork.thumbnail} 

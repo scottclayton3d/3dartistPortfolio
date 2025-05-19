@@ -1,159 +1,289 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import gsap from 'gsap';
-import { SplitText } from 'gsap/SplitText';
-import ThreeScene from '@/components/3d/ThreeScene';
-import RayMarchShader from '@/components/3d/RayMarchShader';
-import RayMarchVisualizer from '@/components/3d/RayMarchVisualizer';
-import MarchingCubes from '@/components/3d/MarchingCubes';
-import FloatingParticles from '@/components/3d/FloatingParticles';
-import RaymarchEffect from '@/components/3d/RaymarchEffect';
-import { Canvas } from '@react-three/fiber';
+import React, { useRef, useEffect, useState } from 'react';
+import * as THREE from 'three';
+import { gsap } from 'gsap';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 
-// Register GSAP plugins
-gsap.registerPlugin(SplitText);
+const HeroSection = () => {
+  const mountRef = useRef(null);
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [hovering, setHovering] = useState(false);
 
-const Hero = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const titleSplitRef = useRef<SplitText | null>(null);
-
-  // Animate hero elements on mount
   useEffect(() => {
-    if (!containerRef.current) return;
+    // Scene setup
+    const currentMount = mountRef.current;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75, 
+      currentMount.clientWidth / currentMount.clientHeight, 
+      0.1, 
+      1000
+    );
+    camera.position.z = 5;
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    // Renderer setup with WebGL
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      alpha: true 
+    });
+    renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    currentMount.appendChild(renderer.domElement);
 
-    // Split text for animation
-    if (titleRef.current) {
-      titleSplitRef.current = new SplitText(titleRef.current, { type: 'words,chars' });
+    // Post-processing
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
 
-      // Animate title
-      tl.from(titleSplitRef.current.chars, {
-        opacity: 0,
-        y: 100,
-        rotationX: -90,
-        stagger: 0.02,
-        duration: 0.8,
-      });
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.5,   // strength
+      0.4,   // radius
+      0.85   // threshold
+    );
+    composer.addPass(bloomPass);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    const pointLight = new THREE.PointLight(0xff00ff, 1, 10);
+    pointLight.position.set(2, 2, 2);
+    scene.add(pointLight);
+
+    // Particles background
+    const particlesGeometry = new THREE.BufferGeometry();
+    const particlesCount = 3000;
+    const posArray = new Float32Array(particlesCount * 3);
+
+    for (let i = 0; i < particlesCount * 3; i++) {
+      posArray[i] = (Math.random() - 0.5) * 10;
     }
 
-    // Animate subtitle
-    if (subtitleRef.current) {
-      tl.from(subtitleRef.current, {
-        opacity: 0,
-        y: 20,
-        duration: 0.8,
-      }, '-=0.4');
-    }
+    particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
 
-    // Animate button
-    tl.from('.hero-button', {
-      opacity: 0,
-      y: 20,
-      duration: 0.6,
-    }, '-=0.2');
+    const particlesMaterial = new THREE.PointsMaterial({
+      size: 0.02,
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.8,
+      blending: THREE.AdditiveBlending
+    });
 
-    // Clean up split text instance
-    return () => {
-      if (titleSplitRef.current) {
-        titleSplitRef.current.revert();
+    const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+    scene.add(particlesMesh);
+
+    // Main 3D model
+    const gltfLoader = new GLTFLoader();
+    let model;
+
+    gltfLoader.load(
+      '/path/to/your/3d-model.glb', // Replace with your model path
+      (gltf) => {
+        model = gltf.scene;
+        model.scale.set(0.5, 0.5, 0.5);
+        model.position.y = -1;
+        scene.add(model);
+
+        // Animation once model is loaded
+        gsap.to(model.rotation, {
+          y: Math.PI * 2,
+          duration: 20,
+          ease: "none",
+          repeat: -1
+        });
+
+        setModelLoaded(true);
+      },
+      (progress) => {
+        console.log(`Loading progress: ${(progress.loaded / progress.total) * 100}%`);
+      },
+      (error) => {
+        console.error('Error loading model:', error);
       }
+    );
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = false;
+
+    // Mouse interaction
+    const mouse = new THREE.Vector2();
+
+    const onMouseMove = (event) => {
+      // Calculate normalized device coordinates
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      // Move point light based on mouse
+      gsap.to(pointLight.position, {
+        x: mouse.x * 3,
+        y: mouse.y * 3,
+        duration: 0.5
+      });
+
+      // Slightly rotate camera based on mouse position
+      gsap.to(camera.position, {
+        x: mouse.x * 0.3,
+        y: mouse.y * 0.3,
+        duration: 0.5
+      });
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+
+    // Handle window resize
+    const handleResize = () => {
+      camera.aspect = currentMount.clientWidth / currentMount.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
+      composer.setSize(currentMount.clientWidth, currentMount.clientHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Animation loop
+    const animate = () => {
+      requestAnimationFrame(animate);
+
+      particlesMesh.rotation.x += 0.0005;
+      particlesMesh.rotation.y += 0.0005;
+
+      controls.update();
+      composer.render();
+    };
+
+    animate();
+
+    // Text animations with GSAP
+    gsap.from(titleRef.current, {
+      y: 50,
+      opacity: 0,
+      duration: 1.2,
+      delay: 0.5,
+      ease: "power3.out"
+    });
+
+    gsap.from(subtitleRef.current, {
+      y: 30,
+      opacity: 0,
+      duration: 1.2,
+      delay: 0.8,
+      ease: "power3.out"
+    });
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', onMouseMove);
+      currentMount.removeChild(renderer.domElement);
+
+      // Dispose resources
+      scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(material => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
+
+      renderer.dispose();
     };
   }, []);
 
+  // Effect for hover animation
+  useEffect(() => {
+    if (hovering && titleRef.current) {
+      gsap.to(titleRef.current, {
+        scale: 1.05,
+        duration: 0.3,
+        color: '#ff00ff',
+        ease: "power2.out"
+      });
+    } else if (titleRef.current) {
+      gsap.to(titleRef.current, {
+        scale: 1,
+        duration: 0.3,
+        color: '#ffffff',
+        ease: "power2.out"
+      });
+    }
+  }, [hovering]);
+
   return (
-    <section 
-      className="relative h-screen w-full flex items-center overflow-hidden"
-      ref={containerRef}
-    >
-      {/* 3D scene with ray marching visualization */}
-      <div className="absolute inset-0 -z-10">
-        {/* Base gradient background - darker, more dramatic */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#080818] via-[#10101e] to-[#1a1a2e]"></div>
-        
-        
-        <ThreeScene 
-          orbitControls={false}
-          ambientLightIntensity={0.3}
-          cameraPosition={[0, 0, 5]}
-          enablePostProcessing={true}
-          effectsPreset="medium"
-          backgroundColor="#080818"
+    <div className="hero-container">
+      <div 
+        ref={mountRef} 
+        className="canvas-container"
+        style={{
+          width: '100%',
+          height: '100vh',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 1
+        }}
+      />
+
+      <div className="content-overlay" style={{
+        position: 'relative',
+        zIndex: 2,
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        color: 'white',
+        padding: '0 2rem'
+      }}>
+        <h1 
+          ref={titleRef}
+          onMouseEnter={() => setHovering(true)}
+          onMouseLeave={() => setHovering(false)}
+          style={{
+            fontSize: '4rem',
+            margin: '0',
+            textShadow: '0 0 10px rgba(255,0,255,0.5)'
+          }}
         >
-          <FloatingParticles />
-          <RaymarchEffect 
-            colorPalette={['#ff2d92', '#080818', '#00d1c3']}
-            noiseIntensity={0.8}
-          />
-        </ThreeScene>
-        
+          3D Art Portfolio
+        </h1>
 
-        <Canvas
-          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-          camera={{ position: [0, 0, 5] }}
+        <p 
+          ref={subtitleRef}
+          style={{
+            fontSize: '1.5rem',
+            maxWidth: '600px',
+            textAlign: 'center',
+            margin: '1rem 0'
+          }}
         >
-          <RayMarchShader 
-            colorPalette={['#ff3366', '#101010', '#00ffd1']}
-            preset="moody"
-          />
-        </Canvas>
+          Exploring the intersection of imagination and technology
+        </p>
 
-        {/* Grid overlay for texture */}
-        <div className="absolute inset-0 bg-[url('/images/grid.svg')] opacity-5 pointer-events-none"></div>
-
-        {/* Dynamic animated orbs - visible on top of 3D scene */}
-        <div className="absolute top-1/3 left-1/2 w-24 h-24 rounded-full bg-[#ff2d92]/10 blur-md animate-pulse pointer-events-none"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-32 h-32 rounded-full bg-[#00d1c3]/10 blur-md animate-pulse pointer-events-none" 
-          style={{ animationDelay: '1s', animationDuration: '3s' }}></div>
+        {!modelLoaded && (
+          <div className="loading-indicator">
+            <p>Loading 3D experience...</p>
+          </div>
+        )}
       </div>
-
-      {/* Hero content */}
-      <div className="container mx-auto px-4 md:px-12 z-10">
-        <div className="max-w-3xl">
-          <h1 
-            ref={titleRef}
-            className="hero-title mb-8 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight"
-          >
-            <div className="text-white mb-3">
-              Exploring Digital Art
-            </div>
-            <div className="text-white flex items-center">
-              <span className="mr-3">Through</span>
-              <span className="text-[#00d1c3] relative">
-                3D
-                <span className="absolute -inset-1 blur-md opacity-40 bg-[#00d1c3] rounded-lg -z-10"></span>
-              </span>
-            </div>
-          </h1>
-
-          <p 
-            ref={subtitleRef}
-            className="text-xl md:text-2xl text-secondary/80 mb-8 max-w-2xl"
-          >
-            A curated collection of modern 3D artwork, digital sculptures, and abstract renders brought to life through WebGL and interactive experiences.
-          </p>
-
-          <Link 
-            to="/gallery" 
-            className="hero-button relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#ff2d92] to-[#a855f7] text-white rounded-md font-medium transition-all duration-300 overflow-hidden group"
-          >
-            <span className="relative z-10 flex items-center">
-              Explore Gallery
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-            </span>
-            <span className="absolute inset-0 bg-gradient-to-r from-[#a855f7] to-[#00d1c3] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            <span className="absolute top-0 left-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-lg"></span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Bottom gradient overlay */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent"></div>
-    </section>
+    </div>
   );
 };
 
-export default Hero;
+export default HeroSection;
