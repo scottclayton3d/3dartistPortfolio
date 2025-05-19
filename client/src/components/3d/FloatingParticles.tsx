@@ -80,10 +80,13 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
     
     for (let i = 0; i < count; i++) {
       // Distribute particles in a sphere using spherical coordinates
-      // Initialize particles in a rectangle with constrained z
-      const x = (Math.random() * 2 - 1) * radius;
-      const y = (Math.random() * 2 - 1) * radius;
-      const z = -9.5 + Math.random(); // Random z between -10 and -9
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = radius * Math.cbrt(Math.random());
+      
+      const x = r * Math.sin(phi) * Math.cos(theta);
+      const y = r * Math.sin(phi) * Math.sin(theta);
+      const z = r * Math.cos(phi);
       
       if (enableTrails) {
         for (let j = 0; j < trailLength; j++) {
@@ -215,19 +218,14 @@ const FloatingParticles: React.FC<FloatingParticlesProps> = ({
       const newY = currentY + velocities.current[i][1];
       const newZ = currentZ; // Keep z position constant
       
-      // Boundary checks for x and y
-      if (Math.abs(newX) > radius) {
+      // Boundary check
+      const dist = Math.sqrt(newX * newX + newY * newY + newZ * newZ);
+      if (dist > radius) {
+        const scale = radius / dist;
         velocities.current[i][0] *= -0.5;
-        newX = Math.sign(newX) * radius;
-      }
-      if (Math.abs(newY) > radius) {
         velocities.current[i][1] *= -0.5;
-        newY = Math.sign(newY) * radius;
+        velocities.current[i][2] *= -0.5;
       }
-      
-      // Keep z constrained between -10 and -9
-      const newZ = Math.max(-10, Math.min(-9, currentZ));
-      velocities.current[i][2] = 0; // Prevent any z movement
       
       if (enableTrails) {
         // Update trail positions
