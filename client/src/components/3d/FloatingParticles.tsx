@@ -16,7 +16,7 @@ interface FloatingParticlesProps {
 const FloatingParticles: React.FC<FloatingParticlesProps> = ({
   count = 10,
   radius = 1,
-  size = 0.0005,
+  size = 0.0002,
   color = '#FF3366',
   trailLength = 8,
   enableTrails = true
