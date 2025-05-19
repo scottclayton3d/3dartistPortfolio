@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import ThreeScene from '@/components/3d/ThreeScene';
 import RayMarchShader from '@/components/3d/RayMarchShader';
-import FloatingParticles from '@/components/3d/FloatingParticles';
+import RayMarchVisualizer from '@/components/3d/RayMarchVisualizer';
 import MarchingCubes from '@/components/3d/MarchingCubes';
 import ParticleTrails from '@/components/3d/ParticleTrails';
 
@@ -87,22 +87,18 @@ const Hero = () => {
           />
         </ThreeScene>
         
-        {/* Additional ThreeScene for particles to avoid conflicts */}
+        {/* Additional ThreeScene for ray marching visualization */}
         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
           <ThreeScene 
-            orbitControls={true}
+            orbitControls={false}
             backgroundColor="#080818"
             ambientLightIntensity={0.5}
             cameraPosition={[0, 0, 5]}
-            enablePostProcessing={false}
+            enablePostProcessing={true}
           >
-            <FloatingParticles
-              count={25}
-              radius={1}
-              size={0.0001}
-              color="#ff2d92"
-              trailLength={6}
-              enableTrails={false}
+            <RayMarchVisualizer 
+              colorPalette={['#ff2d92', '#080818', '#00d1c3']}
+              intensity={1.2}
             />
           </ThreeScene>
         </div>
